@@ -10,24 +10,25 @@
         (-> response
             http/await
             http/string)))) "state"))
+
 (defn status-message [status]
   (let [verb (if (status "open") "opened" "closed")]
     (str (status "trigger_person") " " verb " the space: " (status "message"))))
 
 (def status (ref {}))
 
-(defn check-status []
+(defn check-status [outf]
   (let [prev-status @status
         cur-status (get-status)]
     (if (= (prev-status "lastchanged")
            (cur-status "lastchanged"))
       (do
-        (println (status-message cur-status))
+        (outf (status-message cur-status))
         (dosync (ref-set status cur-status))))))
          
 
 (defn -main
-  "I don't do a whole lot ... yet."
+  "Print status changes for hackerdeen"
   [& args]
-  (check-status))
+  (check-status println))
 
