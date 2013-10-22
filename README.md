@@ -1,36 +1,24 @@
 # spacebot
 
-FIXME: description
+IRC bot for hackerdeen
+
+Currently only announces when the space is opened/closed and has a load of hard coded parameters...
 
 ## Installation
 
-Download from http://example.com/FIXME.
+Get from github.com/ormiret/spacebot
 
 ## Usage
 
-FIXME: explanation
-
-    $ java -jar spacebot-0.1.0-standalone.jar [args]
+lein run
 
 ## Options
 
-FIXME: listing of options this app accepts.
-
-## Examples
-
-...
-
-### Bugs
-
-...
-
-### Any Other Sections
-### That You Think
-### Might be Useful
+None.
 
 ## License
 
-Copyright © 2013 FIXME
+Copyright © 2013 Robert McWilliam
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.

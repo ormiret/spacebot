@@ -1,6 +1,6 @@
 (defproject spacebot "0.1.0-SNAPSHOT"
   :description "Simple IRC bot to update an IRC channel of status changes for a hackspace"
-  :url "http://example.com/FIXME"
+  :url "http://github.com/ormiret/spacebot"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.5.1"]
