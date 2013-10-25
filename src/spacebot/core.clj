@@ -9,7 +9,7 @@
 (defn get-status []
   ((json/read-str
     (with-open [client (http/create-client)]
-      (let [response (http/GET client "http://bodaegl.ormiret.com/foo/status.json")]
+      (let [response (http/GET client "http://status.hackerdeen.org.uk/status.json")]
         (-> response
             http/await
             http/string)))) "state"))
