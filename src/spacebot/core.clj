@@ -9,7 +9,7 @@
 (defn get-status []
   ((json/read-str
     (with-open [client (http/create-client)]
-      (let [response (http/GET client "http://status.hackerdeen.org.uk/status.json")]
+      (let [response (http/GET client "http://bodaegl.ormiret.com/foo/status.json")]
         (-> response
             http/await
             http/string)))) "state"))
@@ -18,13 +18,13 @@
   (let [verb (if (status "open") "opened" "closed")]
     (str (status "trigger_person") " " verb " the space: " (status "message"))))
 
-(def status (get-status))
+(def status (ref {}))
 
 (defn check-status [outfn]
   (let [prev-status @status
         cur-status (get-status)]
-    (if (= (prev-status "lastchanged")
-           (cur-status "lastchanged"))
+    (if (not= (prev-status "lastchange")
+              (cur-status "lastchange"))
       (do
         (dosync (ref-set status cur-status))
         (outfn (status-message cur-status)))
@@ -43,8 +43,9 @@
   "Print status changes for hackerdeen"
   [& args]
   (connect)
-  ;(irc/message @bot "#hackerdeen-test" "Hi")
+  (irc/message @bot "#hackerdeen-test" "Hi")
   (let [update #(irc/message @bot "#hackerdeen" %)]
-    (at/every 60000 #(check-status update) my-pool))
+    (println "Running.")
+    (at/every 1000 #(check-status update) my-pool))
   )
 
