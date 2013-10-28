@@ -2,8 +2,7 @@
   (:gen-class)
   (:require [http.async.client :as http]
             [clojure.data.json :as json]
-            [irclj.core :as irc]
-            [overtone.at-at :as at]))
+            [irclj.core :as irc]))
 
 
 (defn get-status []
@@ -18,11 +17,12 @@
   (let [verb (if (status "open") "opened" "closed")]
     (str (status "trigger_person") " " verb " the space: " (status "message"))))
 
-(def status (ref {}))
+(def status (ref (get-status)))
 
 (defn check-status [outfn]
   (let [prev-status @status
         cur-status (get-status)]
+    (println "Checking status.")
     (if (not= (prev-status "lastchange")
               (cur-status "lastchange"))
       (do
@@ -31,7 +31,6 @@
         )))
          
 (def bot (ref {}))
-(def my-pool (at/mk-pool))
 
 (defn connect []
   (let [refs (irc/connect "chat.freenode.net" 6666 "hackerdeenbot")]
@@ -39,13 +38,17 @@
   (dosync (ref-set bot refs))
   ))
 
+(defmacro forever [& body]
+  `(while true ~@body))
+
 (defn -main
   "Print status changes for hackerdeen"
   [& args]
   (connect)
-  (irc/message @bot "#hackerdeen-test" "Hi")
+  ;(irc/message @bot "#hackerdeen-test" "Hi")
   (let [update #(irc/message @bot "#hackerdeen" %)]
     (println "Running.")
-    (at/every 1000 #(check-status update) my-pool))
-  )
+    (forever (do (check-status update)
+                 (Thread/sleep 60000)))
+  ))
 
