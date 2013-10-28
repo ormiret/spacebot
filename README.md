@@ -12,6 +12,12 @@ Get from github.com/ormiret/spacebot
 
 lein run
 
+## Deployment
+
+1. Make a jar with `lein uberjar`
+1. Copy the jar to the machine you want to run on.
+1. Run the bot with `java -jar <jar file>`
+
 ## Options
 
 None.
