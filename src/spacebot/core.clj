@@ -5,13 +5,14 @@
             [irclj.core :as irc]))
 
 
+
 (defn get-status []
-  ((json/read-str
-    (with-open [client (http/create-client)]
-      (let [response (http/GET client "http://status.hackerdeen.org.uk/status.json")]
-        (-> response
-            http/await
-            http/string)))) "state"))
+  (with-open [client (http/create-client)]
+    (let [response (http/GET client "http://hackerdeen.org/spaceapi" :timeout 1000)]
+      (http/await response)
+      (if (http/failed? response)
+          (do (println "Request failed.") false)
+          ((json/read-str (http/string response)) "state")))))
 
 (defn status-message [status]
   (let [verb (if (status "open") "opened" "closed")]
@@ -23,8 +24,9 @@
   (let [prev-status @status
         cur-status (get-status)]
     (println "Checking status.")
-    (if (not= (prev-status "lastchange")
-              (cur-status "lastchange"))
+    (if (and cur-status
+             (not= (prev-status "lastchange")
+                   (cur-status "lastchange")))
       (do
         (dosync (ref-set status cur-status))
         (outfn (status-message cur-status)))
@@ -39,7 +41,7 @@
   ))
 
 (defmacro forever [& body]
-  `(while true ~@body))
+  `(loop [] ~@body (recur)))
 
 (defn -main
   "Print status changes for hackerdeen"
