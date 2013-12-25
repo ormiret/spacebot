@@ -3,7 +3,8 @@
   (:require [http.async.client :as http]
             [clojure.data.json :as json]
             [irclj.core :as irc]
-            [irclj.events :as events]))
+            [irclj.events :as events]
+            [clojure.string :as string]))
 
 (def nick (ref "hackerdeenbot2"))
 (def channel (ref "#hackerdeen-test"))
@@ -42,8 +43,18 @@
   (if (= (args :text) "ping")
     (irc/message @bot @channel "pong")))
 
+(defn command [irc msg]
+  (irc/message irc (msg :target) "That's a command?"))
+
+(defn message [irc msg]
+  (if (not (nil? (re-find #"^\?" (msg :text))))
+    (command irc msg))
+  (if (not (nil? (re-find #"(?i)^ping" (msg :text))))
+    (irc/message irc (msg :target) "pong")))
+
+
 (defn connect []
-  (let [refs (irc/connect "chat.freenode.net" 6666 @nick :callbacks {:privmsg ping-pong
+  (let [refs (irc/connect "chat.freenode.net" 6666 @nick :callbacks {:privmsg message
                                                                      :raw-log events/stdout-callback})]
   (irc/join refs @channel)
   (dosync (ref-set bot refs))
