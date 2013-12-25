@@ -2,8 +2,11 @@
   (:gen-class)
   (:require [http.async.client :as http]
             [clojure.data.json :as json]
-            [irclj.core :as irc]))
+            [irclj.core :as irc]
+            [irclj.events :as events]))
 
+(def nick (ref "hackerdeenbot2"))
+(def channel (ref "#hackerdeen-test"))
 
 
 (defn get-status []
@@ -34,21 +37,28 @@
          
 (def bot (ref {}))
 
+(defn ping-pong [irc args] 
+  (println args)
+  (if (= (args :text) "ping")
+    (irc/message @bot @channel "pong")))
+
 (defn connect []
-  (let [refs (irc/connect "chat.freenode.net" 6666 "hackerdeenbot")]
-  (irc/join refs "#hackerdeen")
+  (let [refs (irc/connect "chat.freenode.net" 6666 @nick :callbacks {:privmsg ping-pong
+                                                                     :raw-log events/stdout-callback})]
+  (irc/join refs @channel)
   (dosync (ref-set bot refs))
   ))
 
 (defmacro forever [& body]
   `(loop [] ~@body (recur)))
 
+
 (defn -main
   "Print status changes for hackerdeen"
   [& args]
   (connect)
   ;(irc/message @bot "#hackerdeen-test" "Hi")
-  (let [update #(irc/message @bot "#hackerdeen" %)]
+  (let [update #(irc/message @bot @channel %)]
     (println "Running.")
     (forever (do (check-status update)
                  (Thread/sleep 60000)))
