@@ -6,8 +6,8 @@
             [irclj.events :as events]
             [clojure.string :as string]))
 
-(def nick (ref "hackerdeenbot2"))
-(def channel (ref "#hackerdeen-test"))
+(def nick (ref "hackerdeenbot"))
+(def channel (ref "#hackerdeen"))
 
 
 (defn get-status []
@@ -43,12 +43,29 @@
   (if (= (args :text) "ping")
     (irc/message @bot @channel "pong")))
 
+(defn membership-message [membership-list]
+  (let [current (nth (first membership-list) 2)
+        previous (nth (second membership-list) 2)]
+    (str "So far this month " current " people have paid. Last month it was " previous ".")))
+
+(defn membership [irc msg]
+  (println "Getting membership.")
+  (with-open [client (http/create-client)]
+    (let [response (http/GET client "http://hackerdeen.org/api/membership" :timeout 1000)]
+      (http/await response)
+      (let [response (if (http/failed? response)
+                       "Failed to get membership."
+                       (membership-message ((json/read-str (http/string response)) "membership")))]
+        (irc/message irc (msg :target) response)))))
+
 (defn command [irc msg]
   (irc/message irc (msg :target) "That's a command?"))
 
 (defn message [irc msg]
   (if (not (nil? (re-find #"^\?" (msg :text))))
-    (command irc msg))
+    (if (not (nil? (re-find #"(?i)^\?membership" (msg :text))))
+      (membership irc msg)
+      (command irc msg)))
   (if (not (nil? (re-find #"(?i)^ping" (msg :text))))
     (irc/message irc (msg :target) "pong")))
 
