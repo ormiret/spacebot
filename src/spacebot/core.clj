@@ -48,15 +48,25 @@
         previous (nth (second membership-list) 2)]
     (str "So far this month " current " people have paid. Last month it was " previous ".")))
 
-(defn membership [irc msg]
-  (println "Getting membership.")
-  (with-open [client (http/create-client)]
+(defn get-membership-list []
+  (println "Getting membership list...")
+    (with-open [client (http/create-client)]
     (let [response (http/GET client "http://hackerdeen.org/api/membership" :timeout 1000)]
       (http/await response)
-      (let [response (if (http/failed? response)
-                       "Failed to get membership."
-                       (membership-message ((json/read-str (http/string response)) "membership")))]
-        (irc/message irc (msg :target) response)))))
+      (if (http/failed? response)
+        "Failed to get membership."
+        ((json/read-str (http/string response)) "membership"))
+        )))
+
+
+(defn membership-histogram [irc msg]
+  (doseq [month (take 4 (get-membership-list))]
+          (irc/message irc (msg :target) (format "%4d/%02d: %s" (nth month 1) (nth month 0)
+                                                 (string/join (repeat (nth month 2) "|"))))))
+
+(defn membership [irc msg]
+  (let [message (membership-message (get-membership-list))]
+         (irc/message irc (msg :target) message)))
 
 (defn command [irc msg]
   (irc/message irc (msg :target) "That's a command?"))
@@ -65,7 +75,9 @@
   (if (not (nil? (re-find #"^\?" (msg :text))))
     (if (not (nil? (re-find #"(?i)^\?membership" (msg :text))))
       (membership irc msg)
-      (command irc msg)))
+      (if (not (nil? (re-find #"(?i)^\?histogram" (msg :text))))
+        (membership-histogram irc msg)
+        (command irc msg))))
   (if (not (nil? (re-find #"(?i)^ping" (msg :text))))
     (irc/message irc (msg :target) "pong")))
 
