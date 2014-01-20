@@ -6,9 +6,7 @@
             [irclj.events :as events]
             [clojure.string :as string]))
 
-(def nick (ref "hackerdeenbot"))
-(def channel (ref "#hackerdeen"))
-
+(def config (read-string (slurp "config.clj")))
 
 (defn get-status []
   (with-open [client (http/create-client)]
@@ -23,6 +21,24 @@
     (str (status "trigger_person") " " verb " the space: " (status "message"))))
 
 (def status (ref (get-status)))
+
+(defn rules [irc message]
+  (with-open [client (http/create-client)]
+    (let [response (http/GET client "https://raw.github.com/hackerdeen/rules/master/rules.md"
+                             :timeout 1000)]
+      (http/await response)
+      (if (http/failed? response)
+        (irc/message irc (message :target) "Failed to get rules.")
+        (let [number (re-find #"\d+" (message :text))
+              rules (string/split-lines (http/string response))]
+          (if (not (nil? number))
+            (let [index (+ (Integer. number) 2)]
+              (if (> (count rules) index)
+                (irc/message irc (message :target) (string/trim (nth rules index)))
+                (irc/message irc (message :target) (str "There is no rule " (- index 2)))))
+            (doseq [line (string/split-lines (http/string response))]
+              (irc/message irc (message :target) (string/trim line)))))))))
+            
 
 (defn check-status [outfn]
   (let [prev-status @status
@@ -41,7 +57,7 @@
 (defn ping-pong [irc args] 
   (println args)
   (if (= (args :text) "ping")
-    (irc/message @bot @channel "pong")))
+    (irc/message irc (args :target) "pong")))
 
 (defn membership-message [membership-list]
   (let [current (nth (first membership-list) 2)
@@ -71,21 +87,34 @@
 (defn command [irc msg]
   (irc/message irc (msg :target) "That's a command?"))
 
+(defn help-message [irc msg]
+  (let [help ["Commands available:"
+              "?membership - Give the number of people who've paid membership this month and last."
+              "?histogram - Give a histogram of membership for the last four months"
+              "?rules [n] - Give the rules, if n is supplied then you get rule n"
+              "?help - This help text"
+              "ping - Respnd with pong"]]
+    (doseq [line help]
+      (irc/message irc (msg :target) line))))
+
+(def commands [{:regex #"(?i)^\?membership" :func membership}
+               {:regex #"(?i)^\?histogram" :func membership-histogram}
+               {:regex #"(?i)^\?rules" :func rules}
+               {:regex #"(?i)^ping" :func #(irc/message %1 (%2 :target) "pong")}
+               {:regex #"(?i)^\?help" :func help-message}])
+
+
 (defn message [irc msg]
-  (if (not (nil? (re-find #"^\?" (msg :text))))
-    (if (not (nil? (re-find #"(?i)^\?membership" (msg :text))))
-      (membership irc msg)
-      (if (not (nil? (re-find #"(?i)^\?histogram" (msg :text))))
-        (membership-histogram irc msg)
-        (command irc msg))))
-  (if (not (nil? (re-find #"(?i)^ping" (msg :text))))
-    (irc/message irc (msg :target) "pong")))
+  (doseq [command commands]
+    (if (not (nil? (re-find (command :regex) (msg :text))))
+      ((command :func) irc msg))))
 
 
 (defn connect []
-  (let [refs (irc/connect "chat.freenode.net" 6666 @nick :callbacks {:privmsg message
+  (let [refs (irc/connect "chat.freenode.net" 6666 (config :nick) :callbacks {:privmsg message
                                                                      :raw-log events/stdout-callback})]
-  (irc/join refs @channel)
+  (doseq [channel (config :channels)]
+    (irc/join refs channel))
   (dosync (ref-set bot refs))
   ))
 
@@ -98,7 +127,7 @@
   [& args]
   (connect)
   ;(irc/message @bot "#hackerdeen-test" "Hi")
-  (let [update #(irc/message @bot @channel %)]
+  (let [update #(irc/message @bot (first (config :channels)) %)]
     (println "Running.")
     (forever (do (check-status update)
                  (Thread/sleep 60000)))

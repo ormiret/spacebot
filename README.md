@@ -2,11 +2,16 @@
 
 IRC bot for hackerdeen
 
-Currently only announces when the space is opened/closed and has a load of hard coded parameters...
-
 ## Installation
 
 Get from github.com/ormiret/spacebot
+
+## Configuration
+
+Create a configuration file core.clj something like
+       {:nick "hackerdeenbot"
+        :channels ["#hackerdeen" "#57N"]
+	}
 
 ## Usage
 
@@ -18,9 +23,8 @@ lein run
 1. Copy the jar to the machine you want to run on.
 1. Run the bot with `java -jar <jar file>`
 
-## Options
-
-None.
+The bot will eat memory if you let it. You can add something like
+`-Xmx200m` to the `java` command to limit it's heap to 200MiB.
 
 ## License
 
