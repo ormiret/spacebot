@@ -127,7 +127,7 @@
   [& args]
   (connect)
   ;(irc/message @bot "#hackerdeen-test" "Hi")
-  (let [update #(irc/message @bot (first (config :channels)) %)]
+  (let [update #(doseq [channel (config :channels)] (irc/message @bot channel %))]
     (println "Running.")
     (forever (do (check-status update)
                  (Thread/sleep 60000)))
