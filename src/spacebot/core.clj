@@ -8,6 +8,11 @@
 
 (def config (read-string (slurp "config.clj")))
 
+(defn respond-to [message]
+  (if (= (config :nick) (message :target)) 
+    (message :nick)
+    (message :target)))
+
 (defn get-status []
   (with-open [client (http/create-client)]
     (let [response (http/GET client "http://hackerdeen.org/spaceapi" :timeout 1000)]
@@ -25,19 +30,20 @@
 (defn rules [irc message]
   (with-open [client (http/create-client)]
     (let [response (http/GET client "https://raw.github.com/hackerdeen/rules/master/rules.md"
-                             :timeout 1000)]
+                             :timeout 1000)
+          target (respond-to message)]
       (http/await response)
       (if (http/failed? response)
-        (irc/message irc (message :target) "Failed to get rules.")
+        (irc/message irc target "Failed to get rules.")
         (let [number (re-find #"\d+" (message :text))
               rules (string/split-lines (http/string response))]
           (if (not (nil? number))
             (let [index (+ (Integer. number) 2)]
               (if (> (count rules) index)
-                (irc/message irc (message :target) (string/trim (nth rules index)))
-                (irc/message irc (message :target) (str "There is no rule " (- index 2)))))
+                (irc/message irc target (string/trim (nth rules index)))
+                (irc/message irc target (str "There is no rule " (- index 2)))))
             (doseq [line (string/split-lines (http/string response))]
-              (irc/message irc (message :target) (string/trim line)))))))))
+              (irc/message irc target (string/trim line)))))))))
             
 
 (defn check-status [outfn]
@@ -53,11 +59,6 @@
         )))
          
 (def bot (ref {}))
-
-(defn ping-pong [irc args] 
-  (println args)
-  (if (= (args :text) "ping")
-    (irc/message irc (args :target) "pong")))
 
 (defn membership-message [membership-list]
   (let [current (nth (first membership-list) 2)
@@ -77,15 +78,12 @@
 
 (defn membership-histogram [irc msg]
   (doseq [month (take 4 (get-membership-list))]
-          (irc/message irc (msg :target) (format "%4d/%02d: %s" (nth month 1) (nth month 0)
+          (irc/message irc (respond-to msg) (format "%4d/%02d: %s" (nth month 1) (nth month 0)
                                                  (string/join (repeat (nth month 2) "|"))))))
 
 (defn membership [irc msg]
   (let [message (membership-message (get-membership-list))]
-         (irc/message irc (msg :target) message)))
-
-(defn command [irc msg]
-  (irc/message irc (msg :target) "That's a command?"))
+         (irc/message irc (respond-to msg) message)))
 
 (defn help-message [irc msg]
   (let [help ["Commands available:"
@@ -93,14 +91,14 @@
               "?histogram - Give a histogram of membership for the last four months"
               "?rules [n] - Give the rules, if n is supplied then you get rule n"
               "?help - This help text"
-              "ping - Respnd with pong"]]
+              "ping - Respond with pong"]]
     (doseq [line help]
-      (irc/message irc (msg :target) line))))
+      (irc/message irc (respond-to msg) line))))
 
 (def commands [{:regex #"(?i)^\?membership" :func membership}
                {:regex #"(?i)^\?histogram" :func membership-histogram}
                {:regex #"(?i)^\?rules" :func rules}
-               {:regex #"(?i)^ping" :func #(irc/message %1 (%2 :target) "pong")}
+               {:regex #"(?i)^ping" :func #(irc/message %1 (respond-to %2) "pong")}
                {:regex #"(?i)^\?help" :func help-message}])
 
 
