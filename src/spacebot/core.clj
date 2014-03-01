@@ -15,7 +15,7 @@
 
 (defn get-status []
   (with-open [client (http/create-client)]
-    (let [response (http/GET client "http://hackerdeen.org/spaceapi" :timeout 1000)]
+    (let [response (http/GET client "http://hackerdeen.org/spaceapi" :timeout 5000)]
       (http/await response)
       (if (http/failed? response)
           (do (println "Request failed.") false)
@@ -30,7 +30,7 @@
 (defn rules [irc message]
   (with-open [client (http/create-client)]
     (let [response (http/GET client "https://raw.github.com/hackerdeen/rules/master/rules.md"
-                             :timeout 1000)
+                             :timeout 5000)
           target (respond-to message)]
       (http/await response)
       (if (http/failed? response)
@@ -68,7 +68,7 @@
 (defn get-membership-list []
   (println "Getting membership list...")
     (with-open [client (http/create-client)]
-    (let [response (http/GET client "http://hackerdeen.org/api/membership" :timeout 1000)]
+    (let [response (http/GET client "http://hackerdeen.org/api/membership" :timeout 5000)]
       (http/await response)
       (if (http/failed? response)
         "Failed to get membership."
