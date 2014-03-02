@@ -61,8 +61,9 @@
           (do (println "Request failed.") false)
           ((json/read-str (http/string response)) "humidity")))))
 
-(defn sensors
-  (let [txt "Rob needs to do things here"]
+(defn sensors [irc msg]
+  (let [txt (str "In the space the temperature is " (get-temperature) 
+                 "°C and the humidity is " (get-humidity) "%")]
       (irc/message irc (respond-to msg) txt)))
 
 (defn check-status [outfn]
@@ -109,6 +110,7 @@
               "?membership - Give the number of people who've paid membership this month and last."
               "?histogram - Give a histogram of membership for the last four months"
               "?rules [n] - Give the rules, if n is supplied then you get rule n"
+              "?sensors - Give readings from the sensors in the space"
               "?help - This help text"
               "ping - Respond with pong"]]
     (doseq [line help]
