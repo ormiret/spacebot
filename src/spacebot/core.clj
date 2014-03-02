@@ -15,7 +15,7 @@
 
 (defn get-status []
   (with-open [client (http/create-client)]
-    (let [response (http/GET client "http://hackerdeen.org/spaceapi" :timeout 5000)]
+    (let [response (http/GET client "http://57north.co/spaceapi" :timeout 5000)]
       (http/await response)
       (if (http/failed? response)
           (do (println "Request failed.") false)
@@ -44,7 +44,26 @@
                 (irc/message irc target (str "There is no rule " (- index 2)))))
             (doseq [line (string/split-lines (http/string response))]
               (irc/message irc target (string/trim line)))))))))
-            
+
+(defn get-temperature []
+  (with-open [client (http/create-client)]
+    (let [response (http/GET client "http://whiteboard.57north.co/json.php" :timeout 5000)]
+      (http/await response)
+      (if (http/failed? response)
+          (do (println "Request failed.") false)
+          ((json/read-str (http/string response)) "temperature")))))
+
+(defn get-humidity []
+  (with-open [client (http/create-client)]
+    (let [response (http/GET client "http://whiteboard.57north.co/json.php" :timeout 5000)]
+      (http/await response)
+      (if (http/failed? response)
+          (do (println "Request failed.") false)
+          ((json/read-str (http/string response)) "humidity")))))
+
+(defn sensors
+  (let [txt "Rob needs to do things here"]
+      (irc/message irc (respond-to msg) txt)))
 
 (defn check-status [outfn]
   (let [prev-status @status
@@ -57,7 +76,7 @@
         (dosync (ref-set status cur-status))
         (outfn (status-message cur-status)))
         )))
-         
+
 (def bot (ref {}))
 
 (defn membership-message [membership-list]
@@ -98,6 +117,7 @@
 (def commands [{:regex #"(?i)^\?membership" :func membership}
                {:regex #"(?i)^\?histogram" :func membership-histogram}
                {:regex #"(?i)^\?rules" :func rules}
+               {:regex #"(?i)^\?sensors" :func sensors}
                {:regex #"(?i)^ping" :func #(irc/message %1 (respond-to %2) "pong")}
                {:regex #"(?i)^\?help" :func help-message}])
 
@@ -121,7 +141,7 @@
 
 
 (defn -main
-  "Print status changes for hackerdeen"
+  "Print status changes for 57North"
   [& args]
   (connect)
   ;(irc/message @bot "#hackerdeen-test" "Hi")
