@@ -15,7 +15,7 @@
 
 (defn get-status []
   (with-open [client (http/create-client)]
-    (let [response (http/GET client "http://hackerdeen.org/spaceapi" :timeout 5000)]
+    (let [response (http/GET client "http://57north.co/spaceapi" :timeout 5000)]
       (http/await response)
       (if (http/failed? response)
           (do (println "Request failed.") false)
@@ -141,7 +141,7 @@
 
 
 (defn -main
-  "Print status changes for hackerdeen"
+  "Print status changes for 57North"
   [& args]
   (connect)
   ;(irc/message @bot "#hackerdeen-test" "Hi")
