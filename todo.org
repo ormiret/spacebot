@@ -1,0 +1,21 @@
+* Kick people who abuse the bot
+Implement some tracking of how often people trigger bot functions and if they clear a limit they get kicked (preferably with an entertaining message. 
+
+Will need to get the bot to identify to services, give it ops and implement to logic to actually kick folks.
+
+Could probably do with a whitelist of people who are allowed to abuse the bot without getting kicked.
+
+Need to speak to Shell to get the password for identifying as hackerdeenbot. 
+* Logging
+Log messages to the channel to a database so that we can then do some stats type things on them.
+* Logging URLs
+Want to expose a history of URLs that were mentioned in channel - could be done as something on top of the logging mentioned above. 
+* Display title of URLs
+similar to what many other IRC bots do: display the title of the page when a URL is mentioned in channel. A last mentioned by $person feature would also be useful (and would build on top of the logging of URLs mentioned above). 
+* Expose stats about the channel
+ - # of people there
+ - measure of activity
+* Announce door opening
+Related to doorbot logging to something on the internet. Once that is there could then do with the unlock events being announced to the channel. 
+* Relay tweets to IRC
+Could relay when someone tweets with or at the space twitter. Possibly follow hash tags as well.
