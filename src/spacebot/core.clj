@@ -13,13 +13,20 @@
     (message :nick)
     (message :target)))
 
-(defn get-status []
+(defn get-from-web 
+  "Fetch a page from the web and return its contents, or false if the request fails."
+  [url & {:keys [timeout] :or [timeout 5000]}]
   (with-open [client (http/create-client)]
-    (let [response (http/GET client "http://57north.co/spaceapi" :timeout 5000)]
+    (let [response (http/GET client url :timeout timeout)]
       (http/await response)
-      (if (http/failed? response)
-          (do (println "Request failed.") false)
-          ((json/read-str (http/string response)) "state")))))
+      (if (http/failed? response) 
+        false
+        (http/string response)))))
+
+(defn get-status []
+  (let [status (get-from-web "http://57north.co/spaceapi")]
+    (if status
+      ((json/read-str status) "state"))))
 
 (defn status-message [status]
   (let [verb (if (status "open") "opened" "closed")]
@@ -28,43 +35,32 @@
 (def status (ref (get-status)))
 
 (defn rules [irc message]
-  (with-open [client (http/create-client)]
-    (let [response (http/GET client "https://raw.github.com/hackerdeen/rules/master/rules.md"
-                             :timeout 5000)
-          target (respond-to message)]
-      (http/await response)
-      (if (http/failed? response)
+  (let [page (get-from-web "https://raw.github.com/hackerdeen/rules/master/rules.md")
+        target (respond-to message)]
+    (if (not page)
         (irc/message irc target "Failed to get rules.")
         (let [number (re-find #"\d+" (message :text))
-              rules (string/split-lines (http/string response))]
-          (if (not (nil? number))
+              rules (string/split-lines page)]
+          (if (not number)
+            (doseq [line rules]
+              (irc/message irc target (string/trim line)))
             (let [index (+ (Integer. number) 2)]
               (if (> (count rules) index)
                 (irc/message irc target (string/trim (nth rules index)))
-                (irc/message irc target (str "There is no rule " (- index 2)))))
-            (doseq [line (string/split-lines (http/string response))]
-              (irc/message irc target (string/trim line)))))))))
-
-(defn get-temperature []
-  (with-open [client (http/create-client)]
-    (let [response (http/GET client "http://whiteboard.57north.co/json.php" :timeout 5000)]
-      (http/await response)
-      (if (http/failed? response)
-          (do (println "Request failed.") false)
-          ((json/read-str (http/string response)) "temperature")))))
-
-(defn get-humidity []
-  (with-open [client (http/create-client)]
-    (let [response (http/GET client "http://whiteboard.57north.co/json.php" :timeout 5000)]
-      (http/await response)
-      (if (http/failed? response)
-          (do (println "Request failed.") false)
-          ((json/read-str (http/string response)) "humidity")))))
+                (irc/message irc target (str "There is no rule " number))))
+            )))))
 
 (defn sensors [irc msg]
-  (let [txt (str "In the space the temperature is " (get-temperature) 
-                 "°C and the humidity is " (get-humidity) "%")]
-      (irc/message irc (respond-to msg) txt)))
+  (let [spaceapi (get-from-web "http://57north.co/spaceapi")]
+    (if (not spaceapi)
+      (let [sensors ((json/read-str spaceapi) "sensors")
+            temp ((first (sensors "temperature")) "value")
+            humid ((first (sensors "humidity")) "value")]
+        (irc/message irc (respond-to msg) (str "In the space the temperature is " 
+                                               temp 
+                                               "°C and the humidity is " 
+                                               humid "%")))
+      (irc/message irc (respond-to msg) "Failed to get sensor values."))))
 
 (defn check-status [outfn]
   (let [prev-status @status
@@ -83,23 +79,22 @@
 (defn membership-message [membership-list]
   (let [current (nth (first membership-list) 2)
         previous (nth (second membership-list) 2)]
-    (str "So far this month " current " people have paid. Last month it was " previous ".")))
+    (str "So far this month " current 
+         " people have paid. Last month it was " previous ".")))
 
 (defn get-membership-list []
-  (println "Getting membership list...")
-    (with-open [client (http/create-client)]
-    (let [response (http/GET client "http://hackerdeen.org/api/membership" :timeout 5000)]
-      (http/await response)
-      (if (http/failed? response)
+  (let [page (get-from-web "http://hackerdeen.org/api/membership")]
+    (if (not page)
         "Failed to get membership."
-        ((json/read-str (http/string response)) "membership"))
-        )))
+        ((json/read-str page) "membership"))))
+        
 
 
 (defn membership-histogram [irc msg]
   (doseq [month (take 4 (get-membership-list))]
-          (irc/message irc (respond-to msg) (format "%4d/%02d: %s" (nth month 1) (nth month 0)
-                                                 (string/join (repeat (nth month 2) "|"))))))
+          (irc/message irc (respond-to msg) 
+                       (format "%4d/%02d: %s" (nth month 1) (nth month 0)
+                               (string/join (repeat (nth month 2) "|"))))))
 
 (defn membership [irc msg]
   (let [message (membership-message (get-membership-list))]
