@@ -53,6 +53,8 @@
 (defn sensors [irc msg]
   (let [spaceapi (get-from-web "http://57north.co/spaceapi")]
     (if (not spaceapi)
+      (do (println (str "Return:" spaceapi))
+          (irc/message irc (respond-to msg) "Failed to get sensor values."))
       (let [sensors ((json/read-str spaceapi) "sensors")
             temp ((first (sensors "temperature")) "value")
             humid ((first (sensors "humidity")) "value")]
@@ -60,7 +62,7 @@
                                                temp 
                                                "°C and the humidity is " 
                                                humid "%")))
-      (irc/message irc (respond-to msg) "Failed to get sensor values."))))
+      )))
 
 (defn check-status [outfn]
   (let [prev-status @status
