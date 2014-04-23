@@ -34,6 +34,12 @@
 
 (def status (ref (get-status)))
 
+(defn cah [irc msg]
+  (let [page (get-from-web "http://doorbot.57north.co/cah.json")]
+    (if (not page)
+      (irc/message irc (respond-to msg) "doorbot didn't dispense any wisdom. *shrug*")
+      (irc/message irc (respond-to msg) ((json/read-str page) "wisdom")))))
+
 (defn rules [irc message]
   (let [page (get-from-web "https://raw.github.com/hackerdeen/rules/master/rules.md")
         target (respond-to message)]
@@ -108,6 +114,7 @@
               "?histogram - Give a histogram of membership for the last four months"
               "?rules [n] - Give the rules, if n is supplied then you get rule n"
               "?sensors - Give readings from the sensors in the space"
+              "?cah - Get some wisdom from doorbot playing cards against hackspace."
               "?help - This help text"
               "ping - Respond with pong"]]
     (doseq [line help]
@@ -117,6 +124,7 @@
                {:regex #"(?i)^\?histogram" :func membership-histogram}
                {:regex #"(?i)^\?rules" :func rules}
                {:regex #"(?i)^\?sensors" :func sensors}
+               {:regex #"(?i)^\?cah" :func cah}
                {:regex #"(?i)^ping" :func #(irc/message %1 (respond-to %2) "pong")}
                {:regex #"(?i)^\?help" :func help-message}])
 
