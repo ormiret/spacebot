@@ -109,7 +109,7 @@
          (irc/message irc (respond-to msg) message)))
 
 (defn llama [irc msg]
-  (let [opening ["|      Tony the drama llama says..     |"
+  (let [opening ["|   Yokohama the drama llama says...    |"
                  "----------------------------------------"]
         message " (Calm down Children)......              "
         tony   ["                           \\            "
