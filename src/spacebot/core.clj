@@ -108,6 +108,30 @@
   (let [message (membership-message (get-membership-list))]
          (irc/message irc (respond-to msg) message)))
 
+(defn llama [irc msg]
+  (let [opening ["|      Tony the drama llama says..     |"
+                 "----------------------------------------"]
+        message " (Calm down Children)......              "
+        tony   ["                           \\            "
+                "                             \\          "
+                "                               <)        "
+                "                                (_---;  "	
+                "                                /|~|\\  "
+                "                               / / / \\ "
+                "                                        "
+                "----------------------------------------"]
+        user-message (last (re-find #"(?i)^\?llama (.+)" (msg :text)))
+        target (respond-to msg)]
+    (doseq [line opening]
+      (irc/message irc target line))
+    (if (not (nil? user-message))
+      (irc/message irc target (str " (" user-message ")" (if (< 24 (count user-message))
+                                                           ""
+                                                           (apply str (repeat (- 24 (count user-message)) ".")))))
+      (irc/message irc target message))
+    (doseq [line tony]
+      (irc/message irc target line))))
+      
 (defn help-message [irc msg]
   (let [help ["Commands available:"
               "?membership - Give the number of people who've paid membership this month and last."
@@ -115,6 +139,7 @@
               "?rules [n] - Give the rules, if n is supplied then you get rule n"
               "?sensors - Give readings from the sensors in the space"
               "?cah - Get some wisdom from doorbot playing cards against hackspace."
+              "?llama [m] - Summon the drama llama, if m is given it is used as the message the llama will deliver"
               "?help - This help text"
               "ping - Respond with pong"]]
     (doseq [line help]
@@ -125,6 +150,7 @@
                {:regex #"(?i)^\?rules" :func rules}
                {:regex #"(?i)^\?sensors" :func sensors}
                {:regex #"(?i)^\?cah" :func cah}
+               {:regex #"(?i)^\?llama" :func llama}
                {:regex #"(?i)^ping" :func #(irc/message %1 (respond-to %2) "pong")}
                {:regex #"(?i)^\?help" :func help-message}])
 
