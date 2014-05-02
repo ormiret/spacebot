@@ -4,7 +4,8 @@
             [clojure.data.json :as json]
             [irclj.core :as irc]
             [irclj.events :as events]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            [clj-time.core :as t]))
 
 (def config (read-string (slurp "config.clj")))
 
@@ -22,6 +23,7 @@
       (if (http/failed? response) 
         false
         (http/string response)))))
+
 
 (defn get-status []
   (let [status (get-from-web "http://57north.co/spaceapi")]
@@ -69,6 +71,39 @@
                                                "°C and the humidity is " 
                                                humid "%")))
       )))
+
+(defn time-to [dt]
+  (if (t/after? (t/now) dt)
+    (rand-nth ["Any day now" "Didn't that happen already?" "Past" "Imminent" "Real Soon Now™" "yesterday(ish)" "A while ago" "Over there" "hippopotamus"])
+  (let [left (t/interval (t/now) dt)
+        days (t/in-days left)
+        mins (t/in-minutes left)]
+    (if (> days 30)
+      (rand-nth ["Ages yet" "A good while" "Still well off" "Not soon" "Parakeet"])
+      (if (>  days 15)
+        (rand-nth ["A couple of weeks" "Weeks" "A few weeks" "A fortnight or so" "Less than a month" "Still enough time for a short holliday first" 
+                   "Geoffrey" "A couple generations of fruit flys"])
+        (if (> days 7)
+          (rand-nth ["I think a week or so" "days" "Not all that soon" "Enough time to sober up" "About a fortnight" "long enough to run far away"
+                     "A quarter moon or so"])
+          (if (> days 1)
+            (rand-nth ["days" "A while, less than a week" "TOO DAMN SOON" "elephant"])
+            (if (> (* 12 60) mins)
+              (rand-nth ["today... tomorrow... definitely this week." "Soon"])
+              (if (> 60 mins)
+                (rand-nth ["Shits coming up soon." "Are you ready for this?" "Enough time for one more beer first" "ostrich"])
+                (rand-nth ["any minutes now" "IMMINENT" "rhinoceros" "Run now, save yourself!"]))))))))))
+
+(defn time-cmd [irc msg]
+  (let [target (respond-to msg)]
+    (if (not (nil? (re-find #"(?i)hack.+make" (msg :text))))
+      (irc/message irc target (time-to (t/date-time 2014 05 11 9)))
+      (if (not (nil? (re-find #"(?i)campgnd" (msg :text))))
+        (irc/message irc target (time-to (t/date-time 2014 06 27 17)))
+        (irc/message irc target (rand-nth ["*shrug*" "I dunno" "Ye what now?" "How would I know?" "Piss off!" 
+                                       "Why don't you ask someone who cares?"]))))))
+                  
+  
 
 (defn check-status [outfn]
   (let [prev-status @status
@@ -140,6 +175,7 @@
               "?sensors - Give readings from the sensors in the space"
               "?cah - Get some wisdom from doorbot playing cards against hackspace."
               "?llama [m] - Summon the drama llama, if m is given it is used as the message the llama will deliver"
+              "?time hack'n'make|campGND - fuzzy countdown to events"
               "?help - This help text"
               "ping - Respond with pong"]]
     (doseq [line help]
@@ -151,8 +187,10 @@
                {:regex #"(?i)^\?sensors" :func sensors}
                {:regex #"(?i)^\?cah" :func cah}
                {:regex #"(?i)^\?llama" :func llama}
+               {:regex #"(?i)^\?time" :func time-cmd}
                {:regex #"(?i)^ping" :func #(irc/message %1 (respond-to %2) "pong")}
-               {:regex #"(?i)^\?help" :func help-message}])
+               {:regex #"(?i)^\?help" :func help-message}
+               ])
 
 
 (defn message [irc msg]
