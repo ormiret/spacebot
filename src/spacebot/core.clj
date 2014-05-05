@@ -17,11 +17,11 @@
 (defn get-from-web 
   "Fetch a page from the web and return its contents, or false if the request fails."
   [url & {:keys [timeout] :or [timeout 5000]}]
-  (with-open [client (http/create-client)]
+  (with-open [client (http/create-client :follow-redirects true)]
     (let [response (http/GET client url :timeout timeout)]
       (http/await response)
       (if (http/failed? response) 
-        false
+        (println response)
         (http/string response)))))
 
 
@@ -43,7 +43,7 @@
       (irc/message irc (respond-to msg) ((json/read-str page) "wisdom")))))
 
 (defn rules [irc message]
-  (let [page (get-from-web "https://raw.github.com/hackerdeen/rules/master/rules.md")
+  (let [page (get-from-web "https://raw.githubusercontent.com/hackerdeen/rules/master/rules.md")
         target (respond-to message)]
     (if (not page)
         (irc/message irc target "Failed to get rules.")
