@@ -21,7 +21,7 @@
     (let [response (http/GET client url :timeout timeout)]
       (http/await response)
       (if (http/failed? response) 
-        (println response)
+        false
         (http/string response)))))
 
 
