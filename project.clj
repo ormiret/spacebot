@@ -8,7 +8,8 @@
                  [org.clojure/data.json "0.2.3"]
                  [http.async.client "0.5.2"]
                  [overtone/at-at "1.2.0"]
-                 [clj-time "0.7.0"]]
+                 [clj-time "0.7.0"]
+                 [clj-http "0.7.1"]]
   :main ^:skip-aot spacebot.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all}})

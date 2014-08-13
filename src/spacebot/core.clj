@@ -5,7 +5,8 @@
             [irclj.core :as irc]
             [irclj.events :as events]
             [clojure.string :as string]
-            [clj-time.core :as t]))
+            [clj-time.core :as t]
+            [clj-http.client :as client]))
 
 (def config (read-string (slurp "config.clj")))
 
@@ -113,9 +114,9 @@
       (let [sensors ((json/read-str spaceapi) "sensors")
             temp ((first (sensors "temperature")) "value")
             humid ((first (sensors "humidity")) "value")]
-        (irc/message irc (respond-to msg) (str "In the space the temperature is probably not " 
+        (irc/message irc (respond-to msg) (str "In the space the temperature is possibly " 
                                                temp 
-                                               "°C and the humidity is probably not " 
+                                               "°C and the humidity is maybe " 
                                                humid "%")))
       )))
 
@@ -143,27 +144,47 @@
         state (rand-nth (:states object))]
     (irc/message irc target (str "As of the last check, " thing " " state))))
 
+(defn ahoy [irc msg]
+  (let [target (respond-to msg)
+        message (string/replace (:text msg) #"(?i)^\?ahoy" "")]
+    (println "In ahoy")
+    (client/post "http://doorbot.57north.co/ahoy" {
+                                                   :form-params {:message message}
+                                                   :throw-exceptions false
+                                                   })
+    (println "Post done.")
+    (irc/message irc target "Sent to doorbot. Maybe said...")
+    (println "IRC responded to.")))
 
+(defn stfu [irc msg]
+  (let [target (respond-to msg)]
+    (get-from-web "http://doorbot.57north.co/stfu")
+    (irc/message irc target "Doorbot should be quiet for a while.")))
+    
 (defn time-to [dt]
   (if (t/after? (t/now) dt)
-    (rand-nth ["Didn't that happen already?" "Past" "Real Soon Now™" "yesterday(ish)" "A while ago" "Over there" "hippopotamus"])
+    (rand-nth ["Didn't that happen already?" "Past" "Real Soon Now™" "yesterday(ish)" "A while ago" 
+               "Over there" "hippopotamus"])
   (let [left (t/interval (t/now) dt)
         days (t/in-days left)
         mins (t/in-minutes left)]
     (if (> days 30)
       (rand-nth ["Ages yet" "A good while" "Still well off" "Not soon" "Parakeet"])
       (if (>  days 15)
-        (rand-nth ["A couple of weeks" "Weeks" "A few weeks" "A fortnight or so" "Less than a month" "Still enough time for a short holiday first" 
+        (rand-nth ["A couple of weeks" "Weeks" "A few weeks" "A fortnight or so" "Less than a month" 
+                   "Still enough time for a short holiday first" 
                    "Geoffrey" "A couple generations of fruit flys"])
         (if (> days 7)
-          (rand-nth ["I think a week or so" "days" "Not all that soon" "Enough time to sober up" "About a fortnight" "long enough to run far away"
+          (rand-nth ["I think a week or so" "days" "Not all that soon" "Enough time to sober up" 
+                     "About a fortnight" "long enough to run far away"
                      "A quarter moon or so"])
           (if (> days 1)
             (rand-nth ["days" "A while, less than a week" "TOO DAMN SOON" "elephant"])
             (if (> (* 12 60) mins)
               (rand-nth ["today... tomorrow... definitely this week." "Soon"])
               (if (> 60 mins)
-                (rand-nth ["Shits coming up soon." "Are you ready for this?" "Enough time for one more beer first" "ostrich"])
+                (rand-nth ["Shits coming up soon." "Are you ready for this?" "Enough time for one more beer first" 
+                           "ostrich"])
                 (rand-nth ["any minutes now" "IMMINENT!!!11!" "rhinoceros" "Run now, save yourself!"]))))))))))
 
 (defn time-cmd [irc msg]
@@ -256,16 +277,18 @@
       
 (defn help-message [irc msg]
   (let [help ["Commands available:"
-              "?membership - Give the number of people who've paid membership this month and last."
+              "?membership - Give the number of people who've paid membership this month and last"
               "?histogram - Give a histogram of membership for the last four months"
               "?rules [n] - Give the rules, if n is supplied then you get rule n"
               "?sensors - Give readings from the sensors in the space"
-              "?cah - Get some wisdom from doorbot playing cards against hackspace."
+              "?cah - Get some wisdom from doorbot playing cards against hackspace"
               "?llama [m] - Summon the drama llama, if m is given it is used as the message the llama will deliver"
               "?time hack'n'make|campGND - fuzzy countdown to events"
               "?insult [object] - Generate an insult"
               "?events - list some upcoming space events"
               "?status - get the status of something"
+              "?ahoy [message] - Have message read out (by lousy computer voice) in the space"
+              "?stfu - silence the text to speech in the space for a while"
               "?help - This help text"
               "ping - Respond with pong"]]
     (doseq [line help]
@@ -283,6 +306,8 @@
                {:regex #"(?i)^\?events" :func events}
                {:regex #"(?i)^\?status" :func status-of-stuff}
                {:regex #"(?i)^ping" :func #(irc/message %1 (respond-to %2) "pong")}
+               {:regex #"(?i)^\?ahoy" :func ahoy}
+               {:regex #"(?i)^\?stfu" :func stfu}
                {:regex #"(?i)^\?help" :func help-message}
                ])
 
