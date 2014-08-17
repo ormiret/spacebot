@@ -40,7 +40,3 @@ Once it is keeping logs could pick a "noteworthy" entry to quote. Need to decide
 ** Entry from 57N QDB
 * Answer yes or no questions/ make choices
 Yes/no is easy. Making choices means doing some processing to identify the choices from the question. 
-* Ahoy
-Command to make doorbot say something in the space.
-** stfu
-There will be a need for a command to silence things for a while in case of abuse.

@@ -114,10 +114,10 @@
       (let [sensors ((json/read-str spaceapi) "sensors")
             temp ((first (sensors "temperature")) "value")
             humid ((first (sensors "humidity")) "value")]
-        (irc/message irc (respond-to msg) (str "In the space the temperature is possibly " 
+        (irc/message irc (respond-to msg) (str "In the space the temperature is probably not " 
                                                temp 
-                                               "°C and the humidity is maybe " 
-                                               humid "%")))
+                                               "°C and the humidity is unlikely to be  " 
+                                               humid "% Someone should really fix the sensors.")))
       )))
 
 (defn status-of-stuff [irc msg]
@@ -155,6 +155,22 @@
     (println "Post done.")
     (irc/message irc target "Sent to doorbot. Maybe said...")
     (println "IRC responded to.")))
+
+(defn idea [irc msg]
+  (let [target (respond-to msg)
+        description (string/replace (:text msg) #"(?i)^\?idea\s*" "")
+        creator (:nick msg)
+        resp (:body (client/post "http://idea.bodaegl.com/api/add_idea" {:form-params {:description description
+                                                                                :creator creator}
+                                                                  :throw-exceptions false
+                                                                  }))
+        json-resp  (json/read-str resp)
+        name (json-resp "name")
+        
+        ]
+    (println (str "Response:" resp))
+    (println (str "Name: " name))
+    (irc/message irc target (str "Your idea has been logged under code name " name))))
 
 (defn stfu [irc msg]
   (let [target (respond-to msg)]
@@ -308,6 +324,7 @@
                {:regex #"(?i)^ping" :func #(irc/message %1 (respond-to %2) "pong")}
                {:regex #"(?i)^\?ahoy" :func ahoy}
                {:regex #"(?i)^\?stfu" :func stfu}
+               {:regex #"(?i)^\?idea" :func idea}
                {:regex #"(?i)^\?help" :func help-message}
                ])
 
