@@ -305,7 +305,7 @@
                 "----------------------------------------"]
         user-message (last (re-find #"(?i)^\?send-llama\s+\S+(.+)" (msg :text)))
         target (last (re-find #"(?i)^\?send-llama\s+(\S+)" (msg :text)))
-        join (not (some #{target} (config :channels)))]
+        join (not (some #{(string/upper-case target)} (map string/upper-case (config :channels))))]
     (if (not (nil? target))
       (do
         (irc/message irc (respond-to msg) (str "Dispatching the llama to " target))
