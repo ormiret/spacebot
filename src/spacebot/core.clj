@@ -332,7 +332,11 @@
 (defn message [irc msg]
   (doseq [command commands]
     (if (not (nil? (re-find (command :regex) (msg :text))))
-      ((command :func) irc msg))))
+      (try 
+        ((command :func) irc msg)
+        (catch Exception e (irc/message irc (respond-to msg) (str "FAIL: " (.getMessage e))))))))
+      
+
 
 
 (defn connect []
