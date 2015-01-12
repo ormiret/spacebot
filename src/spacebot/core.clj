@@ -329,39 +329,45 @@
   (let [help ["Commands available:"
               "?membership - Give the number of people who've paid membership this month and last"
               "?histogram - Give a histogram of membership for the last four months"
-              "?rules [n] - Give the rules, if n is supplied then you get rule n"
+              "?rule[s] [n] - Give the rules, if n is supplied then you get rule n"
               "?sensors - Give readings from the sensors in the space"
               "?cah - Get some wisdom from doorbot playing cards against hackspace"
               "?llama [m] - Summon the drama llama, if m is given it is used as the message the llama will deliver"
-              "?send-llama <target> [message] - dispatch the llama to another channel"
-              "?time hack'n'make|campGND - fuzzy countdown to events"
+              ;"?send-llama <target> [message] - dispatch the llama to another channel"
+              ;"?time hack'n'make|campGND - fuzzy countdown to events"
               "?insult [object] - Generate an insult"
               "?events - list some upcoming space events"
               "?status - get the status of something"
-              "?ahoy [message] - Have message read out (by lousy computer voice) in the space"
-              "?stfu - silence the text to speech in the space for a while"
+              ;"?ahoy [message] - Have message read out (by lousy computer voice) in the space"
+              ;"?stfu - silence the text to speech in the space for a while"
               "?help - This help text"
               "ping - Respond with pong"]]
     (doseq [line help]
       (irc/message irc (respond-to msg) line))))
 
+(defn use-quest [irc msg]
+  (let [target (respond-to msg)]
+    (irc/message irc target (insult))
+    (irc/message irc target "Commands start with a ?")))
+
 (def commands [{:regex #"(?i)^\?membership" :func membership}
                {:regex #"(?i)^\?histogram" :func membership-histogram}
-               {:regex #"(?i)^\?rules" :func rules}
+               {:regex #"(?i)^\?rule" :func rules}
                {:regex #"(?i)^\?sensors" :func sensors}
                {:regex #"(?i)^\?cah" :func cah}
                {:regex #"(?i)^\?llama" :func llama}
-               {:regex #"(?i)^\?send-llama" :func send-llama}
-               {:regex #"(?i)^\?time" :func time-cmd}
+               ;{:regex #"(?i)^\?send-llama" :func send-llama}
+               ;{:regex #"(?i)^\?time" :func time-cmd}
                {:regex #"(?i)^\?insult" :func insult-cmd}
                {:regex #"(?i)^\?blame" :func blame}
                {:regex #"(?i)^\?events" :func events}
                {:regex #"(?i)^\?status" :func status-of-stuff}
                {:regex #"(?i)^ping" :func #(irc/message %1 (respond-to %2) "pong")}
-               {:regex #"(?i)^\?ahoy" :func ahoy}
-               {:regex #"(?i)^\?stfu" :func stfu}
+               ;{:regex #"(?i)^\?ahoy" :func ahoy}
+               ;{:regex #"(?i)^\?stfu" :func stfu}
                {:regex #"(?i)^\?idea" :func idea}
                {:regex #"(?i)^\?help" :func help-message}
+               {:regex #"^!\w+" :func use-quest}
                ])
 
 
