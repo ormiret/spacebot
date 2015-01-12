@@ -94,17 +94,17 @@
   (let [page (get-from-web "https://raw.githubusercontent.com/hackerdeen/rules/master/rules.md")
         target (respond-to message)]
     (if (not page)
-        (irc/message irc target "Failed to get rules.")
-        (let [number (re-find #"\d+" (message :text))
-              rules (string/split-lines page)]
-          (if (not number)
-            (doseq [line rules]
-              (irc/message irc target (string/trim line)))
-            (let [index (+ (Integer. number) 2)]
-              (if (> (count rules) index)
-                (irc/message irc target (string/trim (nth rules index)))
-                (irc/message irc target (str "There is no rule " number))))
-            )))))
+      (irc/message irc target "Failed to get rules.")
+      (let [number (re-find #"\d+" (message :text))
+            rules (string/split-lines page)]
+        (if (not number)
+          (doseq [line rules]
+            (irc/message irc target (string/trim line)))
+          (let [index (+ (Integer. number) 2)]
+            (if (> (count rules) index)
+              (irc/message irc target (string/trim (nth rules index)))
+              (irc/message irc target (str "There is no rule " number))))
+          )))))
 
 (defn sensors [irc msg]
   (let [spaceapi (get-from-web "http://57north.co/spaceapi")]
@@ -125,8 +125,8 @@
         stuff [{:thing "Earth" :states ["was still spinning." "hadn't blown up."]}
                {:thing "the sun" :states ["was still busy fusing." "was a glowing ball of plasma." "was hot."]}
                {:thing "you" :states ["are quite annoying." "are behind on your quota." "need to get out more."
-                                       "are doomed." "are doing OK." "look a bit funny" "need to try harder."
-                                       "are a beautiful snowflake."]}
+                                      "are doomed." "are doing OK." "look a bit funny" "need to try harder."
+                                      "are a beautiful snowflake."]}
                {:thing "the space" :states ["was cashflow negative." "was too damn small." "wasn't on fire."
                                             "was in need of tidying."]}
                {:thing "the directors" :states ["are hard working and conscientious." "are a bunch of slackers."]}
@@ -161,9 +161,9 @@
         description (string/replace (:text msg) #"(?i)^\?idea\s*" "")
         creator (:nick msg)
         resp (:body (client/post "http://idea.bodaegl.com/api/add_idea" {:form-params {:description description
-                                                                                :creator creator}
-                                                                  :throw-exceptions false
-                                                                  }))
+                                                                                       :creator creator}
+                                                                         :throw-exceptions false
+                                                                         }))
         json-resp  (json/read-str resp)
         name (json-resp "name")
         
@@ -176,32 +176,32 @@
   (let [target (respond-to msg)]
     (get-from-web "http://doorbot.57north.co/stfu")
     (irc/message irc target "Doorbot should be quiet for a while.")))
-    
+
 (defn time-to [dt]
   (if (t/after? (t/now) dt)
     (rand-nth ["Didn't that happen already?" "Past" "Real Soon Now™" "yesterday(ish)" "A while ago" 
                "Over there" "hippopotamus"])
-  (let [left (t/interval (t/now) dt)
-        days (t/in-days left)
-        mins (t/in-minutes left)]
-    (if (> days 30)
-      (rand-nth ["Ages yet" "A good while" "Still well off" "Not soon" "Parakeet"])
-      (if (>  days 15)
-        (rand-nth ["A couple of weeks" "Weeks" "A few weeks" "A fortnight or so" "Less than a month" 
-                   "Still enough time for a short holiday first" 
-                   "Geoffrey" "A couple generations of fruit flys"])
-        (if (> days 7)
-          (rand-nth ["I think a week or so" "days" "Not all that soon" "Enough time to sober up" 
-                     "About a fortnight" "long enough to run far away"
-                     "A quarter moon or so"])
-          (if (> days 1)
-            (rand-nth ["days" "A while, less than a week" "TOO DAMN SOON" "elephant"])
-            (if (> (* 12 60) mins)
-              (rand-nth ["today... tomorrow... definitely this week." "Soon"])
-              (if (> 60 mins)
-                (rand-nth ["Shits coming up soon." "Are you ready for this?" "Enough time for one more beer first" 
-                           "ostrich"])
-                (rand-nth ["any minutes now" "IMMINENT!!!11!" "rhinoceros" "Run now, save yourself!"]))))))))))
+    (let [left (t/interval (t/now) dt)
+          days (t/in-days left)
+          mins (t/in-minutes left)]
+      (if (> days 30)
+        (rand-nth ["Ages yet" "A good while" "Still well off" "Not soon" "Parakeet"])
+        (if (>  days 15)
+          (rand-nth ["A couple of weeks" "Weeks" "A few weeks" "A fortnight or so" "Less than a month" 
+                     "Still enough time for a short holiday first" 
+                     "Geoffrey" "A couple generations of fruit flys"])
+          (if (> days 7)
+            (rand-nth ["I think a week or so" "days" "Not all that soon" "Enough time to sober up" 
+                       "About a fortnight" "long enough to run far away"
+                       "A quarter moon or so"])
+            (if (> days 1)
+              (rand-nth ["days" "A while, less than a week" "TOO DAMN SOON" "elephant"])
+              (if (> (* 12 60) mins)
+                (rand-nth ["today... tomorrow... definitely this week." "Soon"])
+                (if (> 60 mins)
+                  (rand-nth ["Shits coming up soon." "Are you ready for this?" "Enough time for one more beer first" 
+                             "ostrich"])
+                  (rand-nth ["any minutes now" "IMMINENT!!!11!" "rhinoceros" "Run now, save yourself!"]))))))))))
 
 (defn time-cmd [irc msg]
   (let [target (respond-to msg)]
@@ -217,7 +217,7 @@
                                                "Why don't you ask someone who cares?"]))))))))
 (defn readable-events [events]
   (map #(str ((% "start") "displaylocal") " " (% "summaryDisplay")) events))
-          
+
 (defn events [irc msg]
   (let [target (respond-to msg)
         event-list (readable-events 
@@ -227,7 +227,7 @@
         ]
     (doseq [event (take 4 event-list)]
       (irc/message irc target event))))
-    
+
 
 (defn check-status [outfn]
   (let [prev-status @status
@@ -239,7 +239,7 @@
       (do
         (dosync (ref-set status cur-status))
         (outfn (status-message cur-status)))
-        )))
+      )))
 
 (def bot (ref {}))
 
@@ -252,20 +252,20 @@
 (defn get-membership-list []
   (let [page (get-from-web "http://hackerdeen.org/api/membership")]
     (if (not page)
-        "Failed to get membership."
-        ((json/read-str page) "membership"))))
-        
+      "Failed to get membership."
+      ((json/read-str page) "membership"))))
+
 
 
 (defn membership-histogram [irc msg]
   (doseq [month (take 4 (get-membership-list))]
-          (irc/message irc (respond-to msg) 
-                       (format "%4d/%02d: %s" (nth month 1) (nth month 0)
-                               (string/join (repeat (nth month 2) "|"))))))
+    (irc/message irc (respond-to msg) 
+                 (format "%4d/%02d: %s" (nth month 1) (nth month 0)
+                         (string/join (repeat (nth month 2) "|"))))))
 
 (defn membership [irc msg]
   (let [message (membership-message (get-membership-list))]
-         (irc/message irc (respond-to msg) message)))
+    (irc/message irc (respond-to msg) message)))
 
 (defn llama [irc msg]
   (let [opening ["|   Yokohama the drama llama says...    |"
@@ -323,8 +323,8 @@
           (irc/message irc target line))
         (if join (irc/part irc target)))
       (irc/message irc (respond-to msg) "I don't understand where you want to send the llama."))))
-  
-      
+
+
 (defn help-message [irc msg]
   (let [help ["Commands available:"
               "?membership - Give the number of people who've paid membership this month and last"
@@ -333,13 +333,13 @@
               "?sensors - Give readings from the sensors in the space"
               "?cah - Get some wisdom from doorbot playing cards against hackspace"
               "?llama [m] - Summon the drama llama, if m is given it is used as the message the llama will deliver"
-              ;"?send-llama <target> [message] - dispatch the llama to another channel"
-              ;"?time hack'n'make|campGND - fuzzy countdown to events"
+                                        ;"?send-llama <target> [message] - dispatch the llama to another channel"
+                                        ;"?time hack'n'make|campGND - fuzzy countdown to events"
               "?insult [object] - Generate an insult"
               "?events - list some upcoming space events"
               "?status - get the status of something"
-              ;"?ahoy [message] - Have message read out (by lousy computer voice) in the space"
-              ;"?stfu - silence the text to speech in the space for a while"
+                                        ;"?ahoy [message] - Have message read out (by lousy computer voice) in the space"
+                                        ;"?stfu - silence the text to speech in the space for a while"
               "?help - This help text"
               "ping - Respond with pong"]]
     (doseq [line help]
@@ -356,15 +356,15 @@
                {:regex #"(?i)^\?sensors" :func sensors}
                {:regex #"(?i)^\?cah" :func cah}
                {:regex #"(?i)^\?llama" :func llama}
-               ;{:regex #"(?i)^\?send-llama" :func send-llama}
-               ;{:regex #"(?i)^\?time" :func time-cmd}
+                                        ;{:regex #"(?i)^\?send-llama" :func send-llama}
+                                        ;{:regex #"(?i)^\?time" :func time-cmd}
                {:regex #"(?i)^\?insult" :func insult-cmd}
                {:regex #"(?i)^\?blame" :func blame}
                {:regex #"(?i)^\?events" :func events}
                {:regex #"(?i)^\?status" :func status-of-stuff}
                {:regex #"(?i)^ping" :func #(irc/message %1 (respond-to %2) "pong")}
-               ;{:regex #"(?i)^\?ahoy" :func ahoy}
-               ;{:regex #"(?i)^\?stfu" :func stfu}
+                                        ;{:regex #"(?i)^\?ahoy" :func ahoy}
+                                        ;{:regex #"(?i)^\?stfu" :func stfu}
                {:regex #"(?i)^\?idea" :func idea}
                {:regex #"(?i)^\?help" :func help-message}
                {:regex #"^!\w+" :func use-quest}
@@ -377,17 +377,17 @@
       (try 
         ((command :func) irc msg)
         (catch Exception e (irc/message irc (respond-to msg) (str "FAIL: " (.getMessage e))))))))
-      
+
 
 
 
 (defn connect []
   (let [refs (irc/connect "chat.freenode.net" 6666 (config :nick) :callbacks {:privmsg message
-                                                                     :raw-log events/stdout-callback})]
-  (doseq [channel (config :channels)]
-    (irc/join refs channel))
-  (dosync (ref-set bot refs))
-  ))
+                                                                              :raw-log events/stdout-callback})]
+    (doseq [channel (config :channels)]
+      (irc/join refs channel))
+    (dosync (ref-set bot refs))
+    ))
 
 (defmacro forever [& body]
   `(loop [] ~@body (recur)))
@@ -397,10 +397,10 @@
   "Print status changes for 57North"
   [& args]
   (connect)
-  ;(irc/message @bot "#hackerdeen-test" "Hi")
+                                        ;(irc/message @bot "#hackerdeen-test" "Hi")
   (let [update #(doseq [channel (config :channels)] (irc/message @bot channel %))]
     (println "Running.")
     (forever (do (check-status update)
                  (Thread/sleep 60000)))
-  ))
+    ))
 
