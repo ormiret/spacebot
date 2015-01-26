@@ -243,6 +243,7 @@
 
 (def bot (ref {}))
 (def conn-time (ref {}))
+(def bored (ref {}))
 
 (defn membership-message [membership-list]
   (let [current (nth (first membership-list) 2)
@@ -372,7 +373,11 @@
                ])
 
 
+(defn activity []
+  (dosync (ref-set bored (t/plus (t/now) (t/minutes (+ 10 (rand-int 300)))))))
+
 (defn message [irc msg]
+  (activity)
   (doseq [command commands]
     (if (not (nil? (re-find (command :regex) (msg :text))))
       (try 
@@ -401,6 +406,13 @@
       ))
 
 
+(defn check-bored []
+  (if (and (t/after? (t/now) @bored) (contains? config :bored))
+    (do 
+      (cah @bot {:target (config :bored)})
+      (activity))
+    (println "Not bored yet."))
+  )
 
 (defmacro forever [& body]
   `(loop [] ~@body (recur)))
@@ -410,10 +422,12 @@
   "Print status changes for 57North"
   [& args]
   (connect)
+  (activity)
                                         ;(irc/message @bot "#hackerdeen-test" "Hi")
   (let [update #(doseq [channel (config :channels)] (irc/message @bot channel %))]
     (println "Running.")
     (forever (do (check-status update)
+                 (check-bored)
                  (Thread/sleep 60000)))
     ))
 
