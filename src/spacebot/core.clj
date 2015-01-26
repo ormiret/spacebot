@@ -68,7 +68,7 @@
   (let [target (respond-to msg)
         person (last (re-find #"(?i)^\?insult (.+)" (msg :text)))]
     (if (not (nil? person))
-      (irc/message irc target (str person ", "(insult)))
+      (irc/message irc target (str person ": "(insult)))
       (irc/message irc target (insult)))))
 
 
@@ -242,6 +242,7 @@
       )))
 
 (def bot (ref {}))
+(def conn-time (ref {}))
 
 (defn membership-message [membership-list]
   (let [current (nth (first membership-list) 2)
@@ -379,15 +380,27 @@
         (catch Exception e (irc/message irc (respond-to msg) (str "FAIL: " (.getMessage e))))))))
 
 
+(defn reconnect [connect]
+  (if (> 30 (t/in-seconds (t/interval @conn-time (t/now))))
+    (connect)
+    (do (Thread/sleep 60000)
+        (connect))))
 
 
 (defn connect []
-  (let [refs (irc/connect "chat.freenode.net" 6666 (config :nick) :callbacks {:privmsg message
-                                                                              :raw-log events/stdout-callback})]
-    (doseq [channel (config :channels)]
-      (irc/join refs channel))
-    (dosync (ref-set bot refs))
-    ))
+    (dosync (ref-set conn-time (t/now)))
+    (let [refs (irc/connect "chat.freenode.net" 6666 (config :nick) :callbacks {:privmsg message
+                                                                              :raw-log events/stdout-callback
+                                                                              :on-shutdown (partial reconnect connect)})]
+      (if (contains? config :pass)
+        (irc/identify refs (config :pass)))
+      (doseq [channel (config :channels)]
+        (irc/join refs channel))
+      
+      (dosync (ref-set bot refs))
+      ))
+
+
 
 (defmacro forever [& body]
   `(loop [] ~@body (recur)))
