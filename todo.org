@@ -30,13 +30,5 @@ Have the main loop just call them all and let them decide for themselves if they
 Use doc strings from the functions to get help text for the enabled functions rather than needing to update one global space thing. 
 * define events somewhere other than the source
 The events for time should be somewhere other than in the source.
-* Have the bot say something if the channel is quiet for too long
-** Ask someone to tell a joke
-** give a cah result
-** something from my fortune file
-Make a DB for this and let the bot add to it. 
-** Quote from history
-Once it is keeping logs could pick a "noteworthy" entry to quote. Need to decide how "noteworthy" is determined...
-** Entry from 57N QDB
 * Answer yes or no questions/ make choices
 Yes/no is easy. Making choices means doing some processing to identify the choices from the question. 
