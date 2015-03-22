@@ -33,9 +33,10 @@
         adjectives ["diseased" "stinky" "foul faced" "horrid breathed" "horrible" "soulless" "shockingly imbecilic"
                     "leathery" "decrepit" "malodorous" "porcine" "rotund" "recalcitrant" "bitter balled" "degenerate"
                     "pus-filled" "maggot-brained" "numb-nippled" "damn intolerant" "gunt cankled" "blistered" "dirtcaked" 
-                    "scabby-faced" "rottencrotched" "shitstacked" "cream-faced" "three inch" "instinct lacking" "overly saucy"
-                    "mite breeding" "smooth-tongue" "knot pated" "frelling" "fracking" "barbaric" "slug slimed"
-                    "elderberry smelling" "not hoopy" "assimilated" "futile" "whining" "hypocritical"]
+                    "scabby-faced" "rottencrotched" "shitstacked" "cream-faced" "3.5 inch" "instinct lacking" "overly saucy"
+                    "mite breeding" "smooth-tongue" "knot pated" "frelling" "fracking" "barbaric" "slug slimed" "betwattled"
+                    "elderberry smelling" "not hoopy" "assimilated" "futile" "whining" "hypocritical" "socialist" "capitalist"
+                    "hooper-arsed"]
         verbs ["cockknocking" "banana bruising" "frenulum fraying" "toe stubbing" "mild cheese-eating" "jelly wearing"
                "ball roundling" "avocado juggling" "shart distilling" "sphincter loosening" "knuckle shuffling" "decaying"
                "grunting" "funk spraying" "bowel loosening" "stomach churning" "ugg wearing" "sock thieving" "gentoo using"
@@ -53,7 +54,8 @@
                "natural coward" "minion" "cut-throat" "weasel" "spleen" "cheese" "leathern-jerkin" "puke stocking"
                "muppet" "pillock" "trollop" "sod" "gannet" "chuffer" "twit" "windows user" "bad solderer" "redshirt"
                "smeghead" "shell script" "heathen" "community manager" "CTO" "management type" "borg" "nerf herder"
-               "zergling" "rat guts in cat vomit" "cheesy scab"]
+               "zergling" "rat guts in cat vomit" "cheesy scab" "noisy power rail" "capacitor" "resistor" "thermistor" 
+               "SCSI disk" "scientologist" "jackanapes" "twiddle-poop" "sneaksby" "meater" "whooperups"]
         ]
     (str (rand-nth greetings) " "
          (rand-nth adjectives) " "
@@ -85,7 +87,10 @@
 (def status (ref (get-status)))
 
 (defn cah [irc msg]
-  (let [page (get-from-web "http://doorbot.57north.co/cah.json")]
+  (let [topic (last (re-find #"(?i)\?cah\s+(\S+)" (msg :text)))
+        page (if (nil? topic) 
+               (get-from-web "http://doorbot.57north.co/cah.json")
+               (get-from-web (str "http://doorbot.57north.co/cah.json/" topic)))]
     (if (not page)
       (irc/message irc (respond-to msg) "doorbot didn't dispense any wisdom. *shrug*")
       (irc/message irc (respond-to msg) ((json/read-str page) "wisdom")))))
@@ -333,7 +338,7 @@
               "?histogram - Give a histogram of membership for the last four months"
               "?rule[s] [n] - Give the rules, if n is supplied then you get rule n"
               "?sensors - Give readings from the sensors in the space"
-              "?cah - Get some wisdom from doorbot playing cards against hackspace"
+              "?cah [t] - Get some wisdom from doorbot playing cards against hackspace, if a topic is given the wisdom will be about it"
               "?llama [m] - Summon the drama llama, if m is given it is used as the message the llama will deliver"
                                         ;"?send-llama <target> [message] - dispatch the llama to another channel"
                                         ;"?time hack'n'make|campGND - fuzzy countdown to events"
