@@ -414,7 +414,7 @@
 (defn check-bored []
   (if (and (t/after? (t/now) @bored) (contains? config :bored))
     (do 
-      (cah @bot {:target (config :bored)})
+      (cah @bot {:target (config :bored) :text "?cah"})
       (activity))
     (println "Not bored yet."))
   )
