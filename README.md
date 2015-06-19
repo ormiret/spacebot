@@ -8,7 +8,8 @@ Get from github.com/ormiret/spacebot
 
 ## Configuration
 
-Create a configuration file core.clj something like
+Create a configuration file config.clj something like
+
        {:nick "hackerdeenbot"
         :channels ["#hackerdeen" "#57N"]
 	}
