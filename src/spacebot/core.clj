@@ -126,8 +126,9 @@
                                                humid "% Someone should really fix the sensors.")))
       )))
 
-(defn status-of-stuff [irc msg]
+(defn status-of-stuff [irc msg & [f]] 
   (let [target (respond-to msg)
+        fun (if f f irc/message)
         stuff [{:thing "Earth" :states ["was still spinning." "hadn't blown up."]}
                {:thing "the sun" :states ["was still busy fusing." "was a glowing ball of plasma." "was hot."]}
                {:thing "you" :states ["are quite annoying." "are behind on your quota." "need to get out more."
@@ -148,7 +149,7 @@
         object (rand-nth stuff)
         thing (:thing object)
         state (rand-nth (:states object))]
-    (irc/message irc target (str "As of the last check, " thing " " state))))
+    (fun irc target (str "As of the last check, " thing " " state))))
 
 (defn ahoy [irc msg]
   (let [target (respond-to msg)
@@ -415,7 +416,9 @@
 (defn check-bored []
   (if (and (t/after? (t/now) @bored) (contains? config :bored))
     (do 
-      (cah @bot {:target (config :bored) :text "?cah"} irc/notice)
+      (if (< 20 (rand-int 100))
+        (status-of-stuff @bot {:target (config :bored)} irc/notice) 
+        (cah @bot {:target (config :bored) :text "?cah"} irc/notice))
       (activity))
     (println "Not bored yet."))
   )
