@@ -86,14 +86,15 @@
 
 (def status (ref (get-status)))
 
-(defn cah [irc msg]
+(defn cah [irc msg & [f]]
   (let [topic (last (re-find #"(?i)\?cah\s+(\S+)" (msg :text)))
         page (if (nil? topic) 
                (get-from-web "http://doorbot.57north.co/cah.json")
-               (get-from-web (str "http://doorbot.57north.co/cah.json/" topic)))]
+               (get-from-web (str "http://doorbot.57north.co/cah.json/" topic)))
+        fun (if f f irc/message)]
     (if (not page)
-      (irc/message irc (respond-to msg) "doorbot didn't dispense any wisdom. *shrug*")
-      (irc/message irc (respond-to msg) ((json/read-str page) "wisdom")))))
+      (fun irc (respond-to msg) "doorbot didn't dispense any wisdom. *shrug*")
+      (fun irc (respond-to msg) ((json/read-str page) "wisdom")))))
 
 (defn rules [irc message]
   (let [page (get-from-web "https://raw.githubusercontent.com/hackerdeen/rules/master/rules.md")
@@ -414,7 +415,7 @@
 (defn check-bored []
   (if (and (t/after? (t/now) @bored) (contains? config :bored))
     (do 
-      (cah @bot {:target (config :bored) :text "?cah"})
+      (cah @bot {:target (config :bored) :text "?cah"} irc/notice)
       (activity))
     (println "Not bored yet."))
   )
