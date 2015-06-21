@@ -416,7 +416,7 @@
 (defn check-bored []
   (if (and (t/after? (t/now) @bored) (contains? config :bored))
     (do 
-      (if (< 20 (rand-int 100))
+      (if (> 20 (rand-int 100))
         (status-of-stuff @bot {:target (config :bored)} irc/notice) 
         (cah @bot {:target (config :bored) :text "?cah"} irc/notice))
       (activity))
