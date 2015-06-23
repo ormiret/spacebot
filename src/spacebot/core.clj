@@ -66,12 +66,13 @@
   (let [target (respond-to msg)]
     (irc/message irc target "It was Iain.")))
 
-(defn insult-cmd [irc msg]
+(defn insult-cmd [irc msg & [f]]
   (let [target (respond-to msg)
-        person (last (re-find #"(?i)^\?insult (.+)" (msg :text)))]
+        person (last (re-find #"(?i)^\?insult (.+)" (msg :text)))
+        fun (if f f irc/message)]
     (if (not (nil? person))
-      (irc/message irc target (str person ": "(insult)))
-      (irc/message irc target (insult)))))
+      (fun irc target (str person ": "(insult)))
+      (fun irc target (insult)))))
 
 
 
@@ -89,8 +90,8 @@
 (defn cah [irc msg & [f]]
   (let [topic (last (re-find #"(?i)\?cah\s+(\S+)" (msg :text)))
         page (if (nil? topic) 
-               (get-from-web "http://doorbot.57north.co/cah.json")
-               (get-from-web (str "http://doorbot.57north.co/cah.json/" topic)))
+               (get-from-web "http://idea.bodaegl.com/cah.json")
+               (get-from-web (str "http://idea.bodaegl.com/cah.json/" topic)))
         fun (if f f irc/message)]
     (if (not page)
       (fun irc (respond-to msg) "doorbot didn't dispense any wisdom. *shrug*")
@@ -381,7 +382,7 @@
 
 
 (defn activity []
-  (dosync (ref-set bored (t/plus (t/now) (t/minutes (+ 10 (rand-int 300)))))))
+  (dosync (ref-set bored (t/plus (t/now) (t/minutes (+ 20 (rand-int 100)))))))
 
 (defn message [irc msg]
   (activity)
@@ -415,12 +416,13 @@
 
 (defn check-bored []
   (if (and (t/after? (t/now) @bored) (contains? config :bored))
-    (do 
-      (if (> 20 (rand-int 100))
-        (status-of-stuff @bot {:target (config :bored)} irc/notice) 
-        (cah @bot {:target (config :bored) :text "?cah"} irc/notice))
+    (let [num (rand-int 100)]
+      (cond
+       (< num 10) (status-of-stuff @bot {:target (config :bored)} irc/notice) 
+       (< num 20) (insult @bot {:target (config :bored) :text "?insult"} irc/notice)
+       :else (cah @bot {:target (config :bored) :text "?cah"} irc/notice))
       (activity))
-    (println "Not bored yet."))
+    (println (str "Not bored yet. Wating till " @bored)))
   )
 
 (defmacro forever [& body]
