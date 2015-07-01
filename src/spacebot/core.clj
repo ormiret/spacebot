@@ -382,7 +382,7 @@
 
 
 (defn activity []
-  (dosync (ref-set bored (t/plus (t/now) (t/minutes (+ 20 (rand-int 100)))))))
+  (dosync (ref-set bored (t/plus (t/now) (t/minutes (+ 10 (rand-int 240)))))))
 
 (defn message [irc msg]
   (activity)
@@ -416,14 +416,16 @@
 
 (defn check-bored []
   (if (and (t/after? (t/now) @bored) (contains? config :bored))
-    (let [num (rand-int 100)]
-      (cond
-       (< num 10) (status-of-stuff @bot {:target (config :bored)} irc/notice) 
-       (< num 20) (insult @bot {:target (config :bored) :text "?insult"} irc/notice)
-       :else (cah @bot {:target (config :bored) :text "?cah"} irc/notice))
-      (activity))
-    (println (str "Not bored yet. Wating till " @bored)))
-  )
+    (try
+      (let [num (rand-int 100)]
+        (cond
+         (< num 2) (status-of-stuff @bot {:target (config :bored)} irc/notice) 
+         (< num 15) (insult-cmd @bot {:target (config :bored) :text "?insult"} irc/notice)
+         :else (cah @bot {:target (config :bored) :text "?cah"} irc/notice))
+        (activity))
+       (catch Exception e (println (str "FAIL" e))))     
+    (println (str "Not bored yet. Wating till " @bored))))
+
 
 (defmacro forever [& body]
   `(loop [] ~@body (recur)))
