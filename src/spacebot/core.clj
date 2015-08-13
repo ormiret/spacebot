@@ -419,8 +419,8 @@
     (try
       (let [num (rand-int 100)]
         (cond
-         (< num 2) (status-of-stuff @bot {:target (config :bored)} irc/notice) 
-         (< num 15) (insult-cmd @bot {:target (config :bored) :text "?insult"} irc/notice)
+         (< num 10) (status-of-stuff @bot {:target (config :bored)} irc/notice) 
+         (< num 12) (insult-cmd @bot {:target (config :bored) :text "?insult"} irc/notice)
          :else (cah @bot {:target (config :bored) :text "?cah"} irc/notice))
         (activity))
        (catch Exception e (println (str "FAIL" e))))     
