@@ -265,8 +265,6 @@
       "Failed to get membership."
       ((json/read-str page) "membership"))))
 
-
-
 (defn membership-histogram [irc msg]
   (doseq [month (take 4 (get-membership-list))]
     (irc/message irc (respond-to msg) 
@@ -280,7 +278,10 @@
 (defn llama [irc msg]
   (let [opening ["|   Yokohama the drama llama says...    |"
                  "----------------------------------------"]
-        message " (Calm down Children)......              "
+        message (rand-nth 
+                 [" (Calm down Children)......              "
+                  " (BURN THE BUILDING TO THE GROUND)       "])
+
         tony   ["                           \\            "
                 "                             \\          "
                 "                               <)        "
@@ -301,40 +302,6 @@
     (doseq [line tony]
       (irc/message irc target line))))
 
-(defn send-llama [irc msg]
-  (let [opening ["|   Yokohama the drama llama says...    |"
-                 "----------------------------------------"]
-        message " (Calm down Children)......              "
-        tony   ["                           \\            "
-                "                             \\          "
-                "                               <)        "
-                "                                (_---;  "	
-                "                                /|~|\\  "
-                "                               / / / \\ "
-                "                                        "
-                "----------------------------------------"]
-        user-message (last (re-find #"(?i)^\?send-llama\s+\S+(.+)" (msg :text)))
-        target (last (re-find #"(?i)^\?send-llama\s+(\S+)" (msg :text)))
-        join (not (some #{(string/upper-case target)} (map string/upper-case (config :channels))))]
-    (if (not (nil? target))
-      (do
-        (irc/message irc (respond-to msg) (str "Dispatching the llama to " target))
-        (if join (do (println (str "joining " target))
-                     (irc/join irc target)
-                     (println "joined")))
-        (doseq [line opening]
-          (irc/message irc target line))
-        (if (not (nil? user-message))
-          (irc/message irc target (str " (" user-message ")" (if (< 24 (count user-message))
-                                                               ""
-                                                               (apply str (repeat (- 24 (count user-message)) ".")))))
-          (irc/message irc target message))
-        (doseq [line tony]
-          (irc/message irc target line))
-        (if join (irc/part irc target)))
-      (irc/message irc (respond-to msg) "I don't understand where you want to send the llama."))))
-
-
 (defn help-message [irc msg]
   (let [help ["Commands available:"
               "?membership - Give the number of people who've paid membership this month and last"
@@ -343,13 +310,9 @@
               "?sensors - Give readings from the sensors in the space"
               "?cah [t] - Get some wisdom from doorbot playing cards against hackspace, if a topic is given the wisdom will be about it"
               "?llama [m] - Summon the drama llama, if m is given it is used as the message the llama will deliver"
-                                        ;"?send-llama <target> [message] - dispatch the llama to another channel"
-                                        ;"?time hack'n'make|campGND - fuzzy countdown to events"
               "?insult [object] - Generate an insult"
               "?events - list some upcoming space events"
               "?status - get the status of something"
-                                        ;"?ahoy [message] - Have message read out (by lousy computer voice) in the space"
-                                        ;"?stfu - silence the text to speech in the space for a while"
               "?help - This help text"
               "ping - Respond with pong"]]
     (doseq [line help]

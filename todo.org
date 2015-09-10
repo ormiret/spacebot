@@ -8,13 +8,6 @@ Could probably do with a whitelist of people who are allowed to abuse the bot wi
 Need to speak to Shell to get the password for identifying as hackerdeenbot. 
 * Logging
 Log messages to the channel to a database so that we can then do some stats type things on them.
-* Logging URLs
-Want to expose a history of URLs that were mentioned in channel - could be done as something on top of the logging mentioned above. 
-
-** Display title of URLs
-similar to what many other IRC bots do: display the title of the page when a URL is mentioned in channel. A last mentioned by $person feature would also be useful (and would build on top of the logging of URLs mentioned above). 
-
-There was another bot doing this but it was deemed to be too annoying and got banned. 
 * Expose stats about the channel
  - # of people there
  - measure of activity
@@ -30,5 +23,11 @@ Have the main loop just call them all and let them decide for themselves if they
 Use doc strings from the functions to get help text for the enabled functions rather than needing to update one global space thing. 
 * define events somewhere other than the source
 The events for time should be somewhere other than in the source.
+* Put in events for important space deadlines
+Things like:
+ - AGM
+ - Certs/domains expiring
+ - aniversary
+ - accounts due
 * Answer yes or no questions/ make choices
 Yes/no is easy. Making choices means doing some processing to identify the choices from the question. 
