@@ -152,39 +152,6 @@
         state (rand-nth (:states object))]
     (fun irc target (str "As of the last check, " thing " " state))))
 
-(defn ahoy [irc msg]
-  (let [target (respond-to msg)
-        message (string/replace (:text msg) #"(?i)^\?ahoy" "")]
-    (println "In ahoy")
-    (client/post "http://doorbot.57north.co/ahoy" {
-                                                   :form-params {:message message}
-                                                   :throw-exceptions false
-                                                   })
-    (println "Post done.")
-    (irc/message irc target "Sent to doorbot. Maybe said...")
-    (println "IRC responded to.")))
-
-(defn idea [irc msg]
-  (let [target (respond-to msg)
-        description (string/replace (:text msg) #"(?i)^\?idea\s*" "")
-        creator (:nick msg)
-        resp (:body (client/post "http://idea.bodaegl.com/api/add_idea" {:form-params {:description description
-                                                                                       :creator creator}
-                                                                         :throw-exceptions false
-                                                                         }))
-        json-resp  (json/read-str resp)
-        name (json-resp "name")
-        
-        ]
-    (println (str "Response:" resp))
-    (println (str "Name: " name))
-    (irc/message irc target (str "Your idea has been logged under code name " name))))
-
-(defn stfu [irc msg]
-  (let [target (respond-to msg)]
-    (get-from-web "http://doorbot.57north.co/stfu")
-    (irc/message irc target "Doorbot should be quiet for a while.")))
-
 (defn time-to [dt]
   (if (t/after? (t/now) dt)
     (rand-nth ["Didn't that happen already?" "Past" "Real Soon Now™" "yesterday(ish)" "A while ago" 
@@ -338,7 +305,6 @@
                {:regex #"(?i)^ping" :func #(irc/message %1 (respond-to %2) "pong")}
                                         ;{:regex #"(?i)^\?ahoy" :func ahoy}
                                         ;{:regex #"(?i)^\?stfu" :func stfu}
-               {:regex #"(?i)^\?idea" :func idea}
                {:regex #"(?i)^\?help" :func help-message}
                {:regex #"^!\w+" :func use-quest}
                ])

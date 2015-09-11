@@ -27,7 +27,7 @@ The events for time should be somewhere other than in the source.
 Things like:
  - AGM
  - Certs/domains expiring
- - aniversary
+ - anniversary
  - accounts due
 * Answer yes or no questions/ make choices
 Yes/no is easy. Making choices means doing some processing to identify the choices from the question. 
