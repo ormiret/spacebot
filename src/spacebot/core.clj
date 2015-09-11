@@ -63,8 +63,9 @@
          (rand-nth nouns))))
 
 (defn blame [irc msg]
-  (let [target (respond-to msg)]
-    (irc/message irc target "It was Iain.")))
+  (let [target (respond-to msg)
+        person (rand-nth ["Iain" (rand-nth ["[tj]" "ormiret" "Nordin" "irl" "WSPR" "hibby" "noodle"])])]
+    (irc/message irc target (str "It was " person "."))))
 
 (defn insult-cmd [irc msg & [f]]
   (let [target (respond-to msg)
@@ -73,8 +74,6 @@
     (if (not (nil? person))
       (fun irc target (str person ": "(insult)))
       (fun irc target (insult)))))
-
-
 
 (defn get-status []
   (let [status (get-from-web "http://57north.co/spaceapi")]
@@ -296,15 +295,11 @@
                {:regex #"(?i)^\?sensors" :func sensors}
                {:regex #"(?i)^\?cah" :func cah}
                {:regex #"(?i)^\?llama" :func llama}
-                                        ;{:regex #"(?i)^\?send-llama" :func send-llama}
-                                        ;{:regex #"(?i)^\?time" :func time-cmd}
                {:regex #"(?i)^\?insult" :func insult-cmd}
                {:regex #"(?i)^\?blame" :func blame}
                {:regex #"(?i)^\?events" :func events}
                {:regex #"(?i)^\?status" :func status-of-stuff}
                {:regex #"(?i)^ping" :func #(irc/message %1 (respond-to %2) "pong")}
-                                        ;{:regex #"(?i)^\?ahoy" :func ahoy}
-                                        ;{:regex #"(?i)^\?stfu" :func stfu}
                {:regex #"(?i)^\?help" :func help-message}
                {:regex #"^!\w+" :func use-quest}
                ])
