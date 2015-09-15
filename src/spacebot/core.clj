@@ -300,6 +300,8 @@
                {:regex #"(?i)^\?events" :func events}
                {:regex #"(?i)^\?status" :func status-of-stuff}
                {:regex #"(?i)^ping" :func #(irc/message %1 (respond-to %2) "pong")}
+               {:regex #"(?i)^\?links" :func #(irc/message %1 (respond-to %2) 
+                                                           "hackercat collects links from the channel at https://hackr.org.uk/~derecho/irclinks.txt")}
                {:regex #"(?i)^\?help" :func help-message}
                {:regex #"^!\w+" :func use-quest}
                ])
