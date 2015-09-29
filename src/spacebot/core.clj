@@ -130,26 +130,35 @@
   (let [target (respond-to msg)
         fun (if f f irc/message)
         stuff [{:thing "Earth" :states ["was still spinning." "hadn't blown up."]}
-               {:thing "the sun" :states ["was still busy fusing." "was a glowing ball of plasma." "was hot."]}
-               {:thing "you" :states ["are quite annoying." "are behind on your quota." "need to get out more."
+               {:thing "The sun" :states ["was still busy fusing." "was a glowing ball of plasma." "was hot."
+                                          "is over there."]}
+               {:thing "You" :states ["are quite annoying." "are behind on your quota." "need to get out more."
                                       "are doomed." "are doing OK." "look a bit funny" "need to try harder."
                                       "are a beautiful snowflake."]}
-               {:thing "the space" :states ["was cashflow negative." "was too damn small." "wasn't on fire."
-                                            "was in need of tidying."]}
-               {:thing "the directors" :states ["are hard working and conscientious." "are a bunch of slackers."]}
-               {:thing "the mailing list" :states ["was full of drama." "was a bit dull." "was generally ignored."]}
-               {:thing "IRC" :states ["is for people with too much time on their hands." "promotes breaches of rule 1."]}
-               {:thing "the rules" :states ["are a breach of my civil rights." "are politically incorrect." 
+               {:thing "The space" :states ["was cashflow negative." "was too damn small." "wasn't on fire."
+                                            "was in need of tidying." "is about to go bust" "needs new blood."
+                                            "needs more members." "should just be closed."]}
+               {:thing "The directors" :states ["are hard working and conscientious." "are a bunch of slackers." 
+                                                "are going to jail." "will need to cough up their £1"]}
+               {:thing "The mailing list" :states ["was full of drama." "was a bit dull." "was generally ignored."
+                                                   "had posts that should be elsewhere."]}
+               {:thing "IRC" :states ["is for people with too much time on their hands." "promotes breaches of rule 1."
+                                      "is generally unexcellent."]}
+               {:thing "The rules" :states ["are a breach of my civil rights." "are politically incorrect." 
                                             "are overly restrictive." "are too vague." "are a tool of oppression."
                                             "are hindering my free expression."]}
-               {:thing "hackhub" :states ["is going to be replaced." "is *not* going to be replaced." "is a thing of beauty."
+               {:thing "Hackhub" :states ["is going to be replaced." "is *not* going to be replaced." "is a thing of beauty."
                                           "is wonderfully stable." "is not fit for purpose." "has a glitch or two."]}
-               {:thing "the website" :states ["was too damn pink." "was full of lies." "was insufficiently pink."]}
+               {:thing "The website" :states ["was too damn pink." "was full of lies." "was insufficiently pink."
+                                              "was bueatiful."]}
+               {:thing "The wiki" :states ["is on an unauthorised server." "is out of control." "needs to be replaced." 
+                                           "has out of date information." "should be done away with." "contains libel."
+                                           "is not as good as the old one." "*still* doesn't have all the stuff from the old wiki."]}
                ]
         object (rand-nth stuff)
         thing (:thing object)
         state (rand-nth (:states object))]
-    (fun irc target (str "As of the last check, " thing " " state))))
+    (fun irc target (str thing " " state))))
 
 (defn time-to [dt]
   (if (t/after? (t/now) dt)
