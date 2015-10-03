@@ -167,37 +167,61 @@
     (let [left (t/interval (t/now) dt)
           days (t/in-days left)
           mins (t/in-minutes left)]
-      (if (> days 30)
-        (rand-nth ["Ages yet" "A good while" "Still well off" "Not soon" "Parakeet"])
-        (if (>  days 15)
-          (rand-nth ["A couple of weeks" "Weeks" "A few weeks" "A fortnight or so" "Less than a month" 
-                     "Still enough time for a short holiday first" 
-                     "Geoffrey" "A couple generations of fruit flys"])
-          (if (> days 7)
-            (rand-nth ["I think a week or so" "days" "Not all that soon" "Enough time to sober up" 
-                       "About a fortnight" "long enough to run far away"
-                       "A quarter moon or so"])
-            (if (> days 1)
-              (rand-nth ["days" "A while, less than a week" "TOO DAMN SOON" "elephant"])
-              (if (> (* 12 60) mins)
-                (rand-nth ["today... tomorrow... definitely this week." "Soon"])
-                (if (> 60 mins)
-                  (rand-nth ["Shits coming up soon." "Are you ready for this?" "Enough time for one more beer first" 
-                             "ostrich"])
-                  (rand-nth ["any minutes now" "IMMINENT!!!11!" "rhinoceros" "Run now, save yourself!"]))))))))))
+      (if (> days 365)
+        (rand-nth ["Ages yet" "A good while" "Still well off" "Not soon" "Once more around the sun (and then some)" "Parakeet"])
+        (if (> days 60)
+          (rand-nth ["Months" "Long enough for us to go bust" "Enough time to brew some beer" "Still well off"])
+          (if (> days 30)
+            (rand-nth ["Weeks." "Maybe long enough to get the 3D printer working" 
+                       "Somewhere in the region of 2 to 4 million lunar distances over c"])
+            (if (>  days 15)
+              (rand-nth ["A couple of weeks" "Weeks" "A few weeks" "A fortnight or so" "Less than a month" 
+                         "Still enough time for a short holiday first" 
+                         "Geoffrey" "A couple generations of fruit flys"])
+              (if (> days 7)
+                (rand-nth ["I think a week or so" "days" "Not all that soon" "Enough time to sober up" 
+                           "About a fortnight" "long enough to run far away"
+                           "A quarter moon or so"])
+                (if (> days 1)
+                  (rand-nth ["days" "A while, less than a week" "TOO DAMN SOON" "elephant"])
+                  (if (> (* 12 60) mins)
+                    (rand-nth ["today... tomorrow... definitely this week." "Soon"])
+                    (if (> 60 mins)
+                      (rand-nth ["Shits coming up soon." "Are you ready for this?" "Enough time for one more beer first" 
+                                 "ostrich"])
+                      (rand-nth ["any minutes now" "IMMINENT!!!11!" "rhinoceros" "Run now, save yourself!"]))))))))))))
+    (defn match-event 
+  "Return the time for the first event where the regex matches."
+  [events message]
+  (loop [e events]
+    (if (seq e)
+      (if (not (nil? (re-find ((first e) :regex) message)))
+        (:time (first e))
+        (recur (next e))))))
 
 (defn time-cmd [irc msg]
-  (let [target (respond-to msg)]
-    (if (not (nil? (re-find #"(?i)hack.+make" (msg :text))))
-      (irc/message irc target (time-to (t/date-time 2014 05 11 9)))
-      (if (not (nil? (re-find #"(?i)campgnd" (msg :text))))
-        (irc/message irc target (time-to (t/date-time 2014 6 27 17)))
-        (if (not (nil? (re-find #"(?i)EMF" (msg :text))))
-          (irc/message irc target (time-to (t/date-time 2014 8 29 12)))
-          (if (not (nil? (re-find #"(?i)oggcamp" (msg :text))))
-            (irc/message irc target (time-to (t/date-time 2014 10 4 9)))
-            (irc/message irc target (rand-nth ["*shrug*" "I dunno" "Ye what now?" "How would I know?" "Piss off!" 
-                                               "Why don't you ask someone who cares?"]))))))))
+  (let [target (respond-to msg)
+        events (load-file "events.clj")
+        event (match-event events (msg :text))]
+    (if (nil? event)
+      (irc/message irc target (rand-nth ["I don't know when that happens."
+                                         "How should I know?"
+                                         "I don't have that information."
+                                         "That has been classified."
+                                         "The ~citrus fruit~ said not to tell you."
+                                         "You are not cleared for that information."
+                                         "It's complicated"
+                                         "Umm, let me get back to you."
+                                         "I'm sure I wrote that down somewhere."
+                                         "E_BAD_QUESTION"
+                                         "Time for you to buck up"]))
+      (irc/message irc target (time-to event)))))
+
+(defn time-list [irc msg]
+  (let [target (respond-to msg)
+        events (load-file "events.clj")]
+    (irc/message irc target (str "I can count down to: " (apply str (interpose ", " (map :desc events)))))))
+                                         
 (defn readable-events [events]
   (map #(str ((% "start") "displaylocal") " " (% "summaryDisplay")) events))
 
@@ -288,6 +312,8 @@
               "?insult [object] - Generate an insult"
               "?events - list some upcoming space events"
               "?status - get the status of something"
+              "?time [event] - give fizzy time till event"
+              "?time-list - list the known events for ?time"
               "?help - This help text"
               "ping - Respond with pong"]]
     (doseq [line help]
@@ -308,6 +334,8 @@
                {:regex #"(?i)^\?blame" :func blame}
                {:regex #"(?i)^\?events" :func events}
                {:regex #"(?i)^\?status" :func status-of-stuff}
+               {:regex #"(?i)^\?time-list" :func time-list}
+               {:regex #"(?i)^\?time " :func time-cmd}
                {:regex #"(?i)^ping" :func #(irc/message %1 (respond-to %2) "pong")}
                {:regex #"(?i)^\?links" :func #(irc/message %1 (respond-to %2) 
                                                            "hackercat collects links from the channel at https://hackr.org.uk/~derecho/irclinks.txt")}
