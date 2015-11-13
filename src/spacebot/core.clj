@@ -129,7 +129,7 @@
 (defn status-of-stuff [irc msg & [f]] 
   (let [target (respond-to msg)
         fun (if f f irc/message)
-        stuff [{:thing "Earth" :states ["was still spinning." "hadn't blown up."]}
+        stuff [{:thing "Earth" :states ["is still spinning." "hasn't blown up."]}
                {:thing "The sun" :states ["was still busy fusing." "was a glowing ball of plasma." "was hot."
                                           "is over there."]}
                {:thing "You" :states ["are quite annoying." "are behind on your quota." "need to get out more."
@@ -279,7 +279,13 @@
                  "----------------------------------------"]
         message (rand-nth 
                  [" (Calm down Children)......              "
-                  " (BURN THE BUILDING TO THE GROUND)       "])
+                  " (BURN THE BUILDING TO THE GROUND)       "
+                  " (FIGHT! FIGHT! FIGHT! FIGHT!)"
+                  " (Don't make me come over there.)"
+                  " ( *sigh* )................"
+                  " (I'm not angry. I'm disappointed.)"
+                  " (Could you not? Please?).."
+                  " (Rule 2).................."])
 
         tony   ["                           \\            "
                 "                             \\          "
