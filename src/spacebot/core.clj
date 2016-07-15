@@ -345,6 +345,8 @@
                {:regex #"(?i)^ping" :func #(irc/message %1 (respond-to %2) "pong")}
                {:regex #"(?i)^\?links" :func #(irc/message %1 (respond-to %2) 
                                                            "hackercat collects links from the channel at https://hackr.org.uk/~derecho/irclinks.txt")}
+               {:regex #"(?i)^\?source" :func #(irc/message %1 (respond-to %2)
+                                                            "My source is at https://github.com/ormiret/spacebot")}
                {:regex #"(?i)^\?help" :func help-message}
                {:regex #"^!\w+" :func use-quest}
                ])
@@ -371,7 +373,7 @@
 
 (defn connect []
     (dosync (ref-set conn-time (t/now)))
-    (let [refs (irc/connect "chat.freenode.net" 6666 (config :nick) :callbacks {:privmsg message
+    (let [refs (irc/connect "irc.freenode.net" 6666 (config :nick) :callbacks {:privmsg message
                                                                               :raw-log events/stdout-callback
                                                                               :on-shutdown (partial reconnect connect)})]
       (if (contains? config :pass)
