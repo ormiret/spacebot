@@ -28,7 +28,8 @@
 (defn insult []
   (let [greetings ["greetings, you" "howdy, you" "oh, hi there, you" "screw me, you are a" "konichiwa! you are a"
                    "mabuhay, you Microsoft loving" "oi, you! you are a" "hello there, you" "salutations, you" 
-                   "hey you, you" "ahoy there, you" "bonjour, you" "you, yes you," "<insert expletive here> off, you" "screw you. you are a" 
+                   "hey you, you" "ahoy there, you" "bonjour, you" "you, yes you," "<insert expletive here> off, you"
+                   "screw you. you are a" 
                    "good day, you" "are you shitting me? you" "welcome, you" "aloha, you frelling" "you are a" "Thou"]
         adjectives ["diseased" "stinky" "foul faced" "horrid breathed" "horrible" "soulless" "shockingly imbecilic"
                     "leathery" "decrepit" "malodorous" "porcine" "rotund" "recalcitrant" "bitter balled" "degenerate"
@@ -64,7 +65,7 @@
 
 (defn blame [irc msg]
   (let [target (respond-to msg)
-        person (rand-nth ["Iain" (rand-nth ["[tj]" "ormiret" "Nordin" "irl" "WSPR" "hibby" "noodle"])])]
+        person (rand-nth ["Iain" "Shell" (rand-nth ["[tj]" "ormiret" "Nordin" "irl" "WSPR" "hibby" "noodle" "DocOcassi"])])]
     (irc/message irc target (str "It was " person "."))))
 
 (defn insult-cmd [irc msg & [f]]
@@ -153,7 +154,8 @@
                                               "was bueatiful."]}
                {:thing "The wiki" :states ["is on an unauthorised server." "is out of control." "needs to be replaced." 
                                            "has out of date information." "should be done away with." "contains libel."
-                                           "is not as good as the old one." "*still* doesn't have all the stuff from the old wiki."]}
+                                           "is not as good as the old one."
+                                           "*still* doesn't have all the stuff from the old wiki."]}
                ]
         object (rand-nth stuff)
         thing (:thing object)
@@ -168,9 +170,11 @@
           days (t/in-days left)
           mins (t/in-minutes left)]
       (if (> days 365)
-        (rand-nth ["Ages yet" "A good while" "Still well off" "Not soon" "Once more around the sun (and then some)" "Parakeet"])
+        (rand-nth ["Ages yet" "A good while" "Still well off" "Not soon"
+                   "Once more around the sun (and then some)" "Parakeet"])
         (if (> days 60)
-          (rand-nth ["Months" "Long enough for us to go bust" "Enough time to brew some beer" "Still well off"])
+          (rand-nth ["Months" "Long enough for us to go bust"
+                     "Enough time to brew some beer" "Still well off"])
           (if (> days 30)
             (rand-nth ["Weeks." "Maybe long enough to get the 3D printer working" 
                        "Somewhere in the region of 2 to 4 million lunar distances over c"])
@@ -187,9 +191,10 @@
                   (if (> (* 12 60) mins)
                     (rand-nth ["today... tomorrow... definitely this week." "Soon"])
                     (if (> 60 mins)
-                      (rand-nth ["Shits coming up soon." "Are you ready for this?" "Enough time for one more beer first" 
-                                 "ostrich"])
-                      (rand-nth ["any minutes now" "IMMINENT!!!11!" "rhinoceros" "Run now, save yourself!"]))))))))))))
+                      (rand-nth ["Shits coming up soon." "Are you ready for this?"
+                                 "Enough time for one more beer first"  "ostrich"])
+                      (rand-nth ["any minutes now" "IMMINENT!!!11!" "rhinoceros"
+                                 "Run now, save yourself!"]))))))))))))
     (defn match-event 
   "Return the time for the first event where the regex matches."
   [events message]
@@ -343,8 +348,10 @@
                {:regex #"(?i)^\?time-list" :func time-list}
                {:regex #"(?i)^\?time " :func time-cmd}
                {:regex #"(?i)^ping" :func #(irc/message %1 (respond-to %2) "pong")}
-               {:regex #"(?i)^\?links" :func #(irc/message %1 (respond-to %2) 
-                                                           "hackercat collects links from the channel at https://hackr.org.uk/~derecho/irclinks.txt")}
+               {:regex #"(?i)^\?links" :func #(irc/message
+                                               %1
+                                               (respond-to %2) 
+                                               "hackercat collects links from the channel at https://hackr.org.uk/~derecho/irclinks.txt")}
                {:regex #"(?i)^\?source" :func #(irc/message %1 (respond-to %2)
                                                             "My source is at https://github.com/ormiret/spacebot")}
                {:regex #"(?i)^\?help" :func help-message}
@@ -373,9 +380,10 @@
 
 (defn connect []
     (dosync (ref-set conn-time (t/now)))
-    (let [refs (irc/connect "irc.freenode.net" 6666 (config :nick) :callbacks {:privmsg message
-                                                                              :raw-log events/stdout-callback
-                                                                              :on-shutdown (partial reconnect connect)})]
+  (let [refs (irc/connect "irc.freenode.net" 6666 (config :nick)
+                          :callbacks {:privmsg message
+                                      :raw-log events/stdout-callback
+                                      :on-shutdown (partial reconnect connect)})]
       (if (contains? config :pass)
         (irc/identify refs (config :pass)))
       (doseq [channel (config :channels)]
