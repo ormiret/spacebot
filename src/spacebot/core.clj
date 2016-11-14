@@ -272,7 +272,8 @@
 (defn membership-histogram [irc msg]
   (doseq [month (take 4 (get-membership-list))]
     (irc/message irc (respond-to msg) 
-                 (format "%4d/%02d: %s" (nth month 1) (nth month 0)
+                 (format "%4d/%02d: %02d %s" (nth month 1) (nth month 0)
+                         (nth month 2)
                          (string/join (repeat (nth month 2) "|"))))))
 
 (defn membership [irc msg]
@@ -371,7 +372,7 @@
         (catch Exception e (irc/message irc (respond-to msg) (str "FAIL: " (.getMessage e))))))))
 
 
-(defn reconnect [connect]
+(defn reconnect [connect & rest]
   (if (> 30 (t/in-seconds (t/interval @conn-time (t/now))))
     (connect)
     (do (Thread/sleep 60000)
