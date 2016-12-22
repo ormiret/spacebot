@@ -363,12 +363,15 @@
 (defn activity []
   (dosync (ref-set bored (t/plus (t/now) (t/minutes (+ 10 (rand-int 240)))))))
 
+(defn unaddressed [msg]
+  (string/replace msg (re-pattern (str "(?i)"  (config :nick) "[:,]?\\s+")) ""))
+
 (defn message [irc msg]
   (activity)
   (doseq [command commands]
-    (if (not (nil? (re-find (command :regex) (msg :text))))
+    (if (not (nil? (re-find (command :regex) (unaddressed (msg :text)))))
       (try 
-        ((command :func) irc msg)
+        ((command :func) irc (update msg :text unaddressed))
         (catch Exception e (irc/message irc (respond-to msg) (str "FAIL: " (.getMessage e))))))))
 
 
