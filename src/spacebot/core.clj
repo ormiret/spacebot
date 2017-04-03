@@ -280,6 +280,31 @@
   (let [message (membership-message (get-membership-list))]
     (irc/message irc (respond-to msg) message)))
 
+(defn unicorn [irc msg]
+  (let [art ["             |\\ "
+             "              \\\\______"
+             "              /    \\  \\_ "
+             "             /  O   \\   \\ "
+             "            /  __     \\  | "
+             "           (__/  /      \\| " 
+             "                /         \\____"
+             "            __--               \\__ "
+             "          --___/                  \\   ___ "
+             "         ( (  __----               |--    \\ "
+             "          || (     \\___     /      /--.    \\ "
+             "           -\\_\\        \\___(      /   /  __/ "
+             "             \\_\\           \\_     \\_ |  / "
+             "                           _/\\__   _) \\_\\ "
+             "                          /  __/ _/ "
+             "                         |__/  _/ "
+             "                        /__\\__/ "
+             "                           /__| "]
+        target (respond-to msg)]
+    (doseq [line art]
+      (irc/message irc target line)
+      (Thread/sleep 1000))))
+                     
+
 (defn llama [irc msg]
   (let [opening ["|   Yokohama the drama llama says...    |"
                  "----------------------------------------"]
@@ -326,10 +351,14 @@
               "?status - get the status of something"
               "?time [event] - give fizzy time till event"
               "?time-list - list the known events for ?time"
+              "?links - where hackercat is saving links"
+              "?source - link to source for this bot"
+              "?unicorn - summon a unicorn"
               "?help - This help text"
               "ping - Respond with pong"]]
     (doseq [line help]
-      (irc/message irc (respond-to msg) line))))
+      (irc/message irc (respond-to msg) line)
+      (Thread/sleep 1000))))
 
 (defn use-quest [irc msg]
   (let [target (respond-to msg)]
@@ -349,10 +378,11 @@
                {:regex #"(?i)^\?time-list" :func time-list}
                {:regex #"(?i)^\?time " :func time-cmd}
                {:regex #"(?i)^ping" :func #(irc/message %1 (respond-to %2) "pong")}
+               {:regex #"(?i)^\?(unicorn)|(gary)" :func unicorn}
                {:regex #"(?i)^\?links" :func #(irc/message
                                                %1
                                                (respond-to %2) 
-                                               "hackercat collects links from the channel at https://hackr.org.uk/~derecho/irclinks.txt")}
+                                               "hackercat collects links from the channel at https://57north.org.uk/irclinks")}
                {:regex #"(?i)^\?source" :func #(irc/message %1 (respond-to %2)
                                                             "My source is at https://github.com/ormiret/spacebot")}
                {:regex #"(?i)^\?help" :func help-message}
