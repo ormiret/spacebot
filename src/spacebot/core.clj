@@ -290,7 +290,7 @@
              "                /        \\__\u000304__\u000F"
              "            __--            \u000304/ \\______\u000F"
              "          --___/           \u000307/\\        \\__\u000F   "
-             "         ( (  __----     _\u000303/  \\__\u000310___    /\u000F___"
+             "         ( (  __----     \u000303_/  \\__\u000310___    /\u000F___"
              "          || (     \\___ \u000306/ \\_       \\  /\u000F    \\ "
              "           -\\_\\        \u000310\\_   \\___    \\/\u000F  /__/ "
              "             \\_\\         \u000308\\___   \\__ /\u000F\\ /  "
@@ -378,7 +378,7 @@
                {:regex #"(?i)^\?time-list" :func time-list}
                {:regex #"(?i)^\?time " :func time-cmd}
                {:regex #"(?i)^ping" :func #(irc/message %1 (respond-to %2) "pong")}
-               {:regex #"(?i)^\?(unicorn)|(gary)" :func unicorn}
+               {:regex #"(?i)^\?((unicorn)|(gary))" :func unicorn}
                {:regex #"(?i)^\?links" :func #(irc/message
                                                %1
                                                (respond-to %2) 
