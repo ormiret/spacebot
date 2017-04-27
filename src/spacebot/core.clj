@@ -77,7 +77,7 @@
       (fun irc target (insult)))))
 
 (defn get-status []
-  (let [status (get-from-web "http://57north.co/spaceapi")]
+  (let [status (get-from-web "http://57north.org.uk/spaceapi")]
     (if status
       ((json/read-str status) "state"))))
 
@@ -114,7 +114,7 @@
           )))))
 
 (defn sensors [irc msg]
-  (let [spaceapi (get-from-web "http://57north.co/spaceapi")]
+  (let [spaceapi (get-from-web "http://57north.org.uk/spaceapi")]
     (if (not spaceapi)
       (do (println (str "Return:" spaceapi))
           (irc/message irc (respond-to msg) "Failed to get sensor values."))
@@ -191,7 +191,7 @@
                   (if (> (* 12 60) mins)
                     (rand-nth ["today... tomorrow... definitely this week." "Soon"])
                     (if (> 60 mins)
-                      (rand-nth ["Shits coming up soon." "Are you ready for this?"
+                      (rand-nth ["Shit's coming up soon." "Are you ready for this?"
                                  "Enough time for one more beer first"  "ostrich"])
                       (rand-nth ["any minutes now" "IMMINENT!!!11!" "rhinoceros"
                                  "Run now, save yourself!"]))))))))))))
@@ -219,6 +219,7 @@
                                          "Umm, let me get back to you."
                                          "I'm sure I wrote that down somewhere."
                                          "E_BAD_QUESTION"
+                                         "*shrug*"
                                          "Time for you to buck up"]))
       (irc/message irc target (time-to event)))))
 
@@ -264,7 +265,7 @@
          " people have paid. Last month it was " previous ".")))
 
 (defn get-membership-list []
-  (let [page (get-from-web "http://hackerdeen.org/api/membership")]
+  (let [page (get-from-web "http://hub.57north.org.uk/api/membership")]
     (if (not page)
       "Failed to get membership."
       ((json/read-str page) "membership"))))
