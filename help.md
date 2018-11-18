@@ -41,7 +41,7 @@ Get the status of something"
 
 ## ?time [event] 
 
-Give fizzy time till `event`
+Give fuzzy time till `event`
 
 ## ?time-list 
 
