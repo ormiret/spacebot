@@ -257,6 +257,7 @@
 (def bot (ref {}))
 (def conn-time (ref {}))
 (def bored (ref {}))
+(def bscnt (ref {}))
 
 (defn membership-message [membership-list]
   (let [current (nth (first membership-list) 2)
@@ -371,7 +372,8 @@
 
 
 (defn activity []
-  (dosync (ref-set bored (t/plus (t/now) (t/minutes (+ 10 (rand-int 240)))))))
+  (dosync (ref-set bored (t/plus (t/now) (t/minutes (+ 15 (rand-int 240)))))
+          (ref-set bscnt 0)))
 
 (defn unaddressed [msg]
   (string/replace msg (re-pattern (str "(?i)"  (config :nick) "[:,]?\\s+")) ""))
@@ -400,6 +402,7 @@
                                       :on-shutdown (partial reconnect connect)})]
       (if (contains? config :pass)
         (irc/identify refs (config :pass)))
+      (Thread/sleep 30000)
       (doseq [channel (config :channels)]
         (irc/join refs channel))
       
@@ -408,16 +411,20 @@
 
 
 (defn check-bored []
-  (if (and (t/after? (t/now) @bored) (contains? config :bored))
+  (if (and (t/after? (t/now) @bored)
+           (contains? config :bored)
+           (< @bscnt 3))
     (try
-      (let [num (rand-int 100)]
+      (let [num (rand-int 100)
+            new_bscnt (+ 1 @bscnt)]
         (cond
-         (< num 10) (status-of-stuff @bot {:target (config :bored)} irc/notice) 
-         (< num 12) (insult-cmd @bot {:target (config :bored) :text "?insult"} irc/notice)
+         (< num 2) (status-of-stuff @bot {:target (config :bored)} irc/notice) 
+         (< num 8) (insult-cmd @bot {:target (config :bored) :text "?insult"} irc/notice)
          :else (cah @bot {:target (config :bored) :text "?cah"} irc/notice))
-        (activity))
+        (activity)
+        (dosync (ref-set bscnt new_bscnt)))
        (catch Exception e (println (str "FAIL" e))))     
-    (println (str "Not bored yet. Wating till " @bored))))
+    (println (str "Not bored yet. Wating till " @bored " or for activity (bscnt: " @bscnt ")"))))
 
 
 (defmacro forever [& body]
