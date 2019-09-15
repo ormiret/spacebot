@@ -65,7 +65,7 @@
 
 (defn blame [irc msg]
   (let [target (respond-to msg)
-        person (rand-nth ["Iain" "Shell" (rand-nth ["[tj]" "ormiret" "Nordin" "irl" "WSPR" "hibby" "noodle" "DocOcassi"])])]
+        person (rand-nth ["Iain" "Shell" "[tj]" "ormiret" "Nordin" "irl" "WSPR" "hibby" "noodle" "DocOcassi" "Andy"])]
     (irc/message irc target (str "It was " person "."))))
 
 (defn insult-cmd [irc msg & [f]]
@@ -139,8 +139,8 @@
                {:thing "The space" :states ["was cashflow negative." "was too damn small." "wasn't on fire."
                                             "was in need of tidying." "is about to go bust" "needs new blood."
                                             "needs more members." "should just be closed."]}
-               {:thing "The directors" :states ["are hard working and conscientious." "are a bunch of slackers." 
-                                                "are going to jail." "will need to cough up their £1"]}
+               {:thing "The directors" :states ["are hard working and conscientious." "are trying."
+                                                "will need to cough up their £1"]}
                {:thing "The mailing list" :states ["was full of drama." "was a bit dull." "was generally ignored."
                                                    "had posts that should be elsewhere."]}
                {:thing "IRC" :states ["is for people with too much time on their hands." "promotes breaches of rule 1."
