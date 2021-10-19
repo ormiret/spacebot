@@ -349,7 +349,6 @@
                {:regex #"(?i)^\?histogram" :func membership-histogram}
                {:regex #"(?i)^\?rule" :func rules}
                {:regex #"(?i)^\?sensors" :func sensors}
-               {:regex #"(?i)^\?cah" :func cah}
                {:regex #"(?i)^\?llama" :func llama}
                {:regex #"(?i)^\?insult" :func insult-cmd}
                {:regex #"(?i)^\?blame" :func blame}
@@ -396,10 +395,12 @@
 
 (defn connect []
     (dosync (ref-set conn-time (t/now)))
-  (let [refs (irc/connect "irc.freenode.net" 6666 (config :nick)
+  (let [refs (irc/connect "irc.libera.chat" 6667 (config :nick)
                           :callbacks {:privmsg message
                                       :raw-log events/stdout-callback
-                                      :on-shutdown (partial reconnect connect)})]
+                                      })]
+
+    ; :on-shutdown (partial reconnect connect)
       (if (contains? config :pass)
         (irc/identify refs (config :pass)))
       (Thread/sleep 30000)
@@ -440,7 +441,11 @@
   (let [update #(doseq [channel (config :channels)] (irc/message @bot channel %))]
     (println "Running.")
     (forever (do (check-status update)
-                 (check-bored)
+                 ;(check-bored)
                  (Thread/sleep 60000)))
     ))
 
+;; (defn -main []
+;;   (forever (do
+;;              (println (get-status))
+;;              (Thread/sleep 10000))))
