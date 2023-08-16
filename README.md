@@ -2,6 +2,8 @@
 
 IRC bot for hackerdeen
 
+This is not used anymore and has been [replaced by some python scripts and irccat](https://argh.technology/posts-output/2022-10-23-hackdeenbot-v2/)
+
 ## Installation
 
 Get from github.com/ormiret/spacebot
